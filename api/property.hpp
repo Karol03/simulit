@@ -22,9 +22,6 @@ public:
 
     virtual bool set(const QVariant& value) = 0;
     virtual QVariant get() const = 0;
-
-signals:
-    void changed(const QVariant& newValue);
 };
 
 
@@ -36,14 +33,15 @@ struct Property : public IProperty
 public:
     Property(QString name,
              QString description,
+             T defaultValue = T{},
              Filter filter = [](const T&) { return true; },
-             T value = T{},
              QObject* parent = nullptr)
         : IProperty(parent)
         , m_name{std::move(name)}
         , m_description{std::move(description)}
+        , m_default{defaultValue}
+        , m_data{defaultValue}
         , m_filter{std::move(filter)}
-        , m_data{value}
     {}
 
     QString name() const override
@@ -66,11 +64,11 @@ public:
         if (value.canConvert<T>())
         {
             auto newValue = value.value<T>();
-            if (!m_filter(newValue))
-                return false;
-            m_data = newValue;
-            emit changed(QVariant::fromValue(m_data));
-            return true;
+            if (m_filter(newValue))
+            {
+                m_data = newValue;
+                return true;
+            }
         }
         return false;
     }
@@ -83,8 +81,9 @@ public:
 private:
     QString m_name;
     QString m_description;
-    Filter m_filter;
+    T m_default;
     T m_data;
+    Filter m_filter;
 };
 
 using IPropertyPtr = std::unique_ptr<api::IProperty>;
@@ -107,8 +106,12 @@ public:
     PropertyGroup(QString name, QObject* parent, Properties&&... properties)
         : IProperty(parent)
         , m_name{std::move(name)}
-        , m_properties{ withParent(std::forward<Properties>(properties), this)... }
-    {}
+    {
+        m_properties.reserve(sizeof...(Properties));
+        (m_properties.emplace_back(
+             withParent(std::forward<Properties>(properties), this)
+             ), ...);
+    }
 
     QString name() const final { return m_name; }
     QString description() const final { return ""; }

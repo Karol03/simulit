@@ -25,8 +25,6 @@ public:
         , m_prop(prop)
     {
         Q_ASSERT(m_prop);
-        connect(m_prop, SIGNAL(changed(QVariant)),
-                this, SLOT(onBackendChanged(QVariant)));
     }
 
     QString label() const
@@ -47,7 +45,6 @@ public:
     QString type() const
     {
         const QMetaType mt = m_prop->type();
-
         switch (mt.id()) {
         case QMetaType::Int:
             return "int";
@@ -76,21 +73,13 @@ public slots:
     {
         if (!m_prop)
             return;
-
-        if (m_prop->set(v))
-        {
+        if (!m_prop->set(v))
             emit valueChanged(m_prop->get());
-        }
     }
 
 signals:
     void valueChanged(const QVariant& v);
-
-private slots:
-    void onBackendChanged(const QVariant& v)
-    {
-        emit valueChanged(v);
-    }
+    void valueClear();
 
 private:
     api::IProperty* m_prop;

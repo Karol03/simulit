@@ -17,12 +17,22 @@ Item {
 
         Loader {
             id: rootLoader
-
             property var prop: root.prop
-
             active: prop !== null
             Layout.fillWidth: true
-            sourceComponent: prop && prop.isGroup ? groupDelegate : leafDelegate
+            sourceComponent: prop.isGroup ? groupDelegate : leafDelegate
+            onPropChanged: {
+                destroyedConn.target = prop
+            }
+
+            Connections {
+                id: destroyedConn
+                target: null
+                function onDestroyed() {
+                    rootLoader.active = false
+                    rootLoader.prop = null
+                }
+            }
         }
     }
 
@@ -55,7 +65,7 @@ Item {
             ColumnLayout {
                 anchors.left: parent.left
                 anchors.right: parent.right
-                spacing: 4
+                spacing: 6
 
                 Label {
                     text: prop.label
@@ -82,7 +92,20 @@ Item {
                     delegate: Loader {
                         Layout.fillWidth: true
                         property var prop: modelData
-                        sourceComponent: prop && prop.isGroup ? groupDelegate : leafDelegate
+                        active: prop !== null
+                        sourceComponent: prop.isGroup ? groupDelegate : leafDelegate
+                        onPropChanged: {
+                            destroyedConn.target = prop
+                        }
+
+                        Connections {
+                            id: destroyedConn
+                            target: null
+                            function onDestroyed() {
+                                rootLoader.active = false
+                                rootLoader.prop = null
+                            }
+                        }
                     }
                 }
 

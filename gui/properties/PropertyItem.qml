@@ -26,7 +26,7 @@ Item {
     ColumnLayout {
         id: row
         anchors.fill: parent
-        spacing: 8
+        spacing: 4
 
         Label {
             id: hintItem
@@ -56,13 +56,10 @@ Item {
     Component {
         id: textEditor
         TextField {
-            text: root.value === null ? "" : String(root.value)
-
-            onTextEdited: {
-                root.value = text;
-                root.valueChanged();
+            text: prop.value === null ? "" : String(prop.value)
+            onEditingFinished: {
+                prop.value = text;
             }
-
             ToolTip.visible: root.hovered && root.hint !== ""
             ToolTip.text: root.hint
         }
@@ -71,16 +68,11 @@ Item {
     // int
     Component {
         id: intEditor
-        SpinBox {
-            from: -2147483648
-            to: 2147483647
-            value: root.value === null ? 0 : Number(root.value)
-
-            onValueModified: {
-                root.value = value;
-                root.valueChanged();
+        TextField {
+            text: prop.value === null ? "" : String(prop.value)
+            onEditingFinished: {
+                prop.value = text;
             }
-
             ToolTip.visible: root.hovered && root.hint !== ""
             ToolTip.text: root.hint
         }
@@ -90,26 +82,10 @@ Item {
     Component {
         id: doubleEditor
         TextField {
-            inputMethodHints: Qt.ImhFormattedNumbersOnly
-
-            text: root.value === null
-                  ? ""
-                  : Qt.locale().toString(Number(root.value), 'f', 3)
-
-            validator: DoubleValidator {
-                bottom: -1e9
-                top: 1e9
-                decimals: 6
-            }
-
+            text: prop.value === null ? "" : String(prop.value)
             onEditingFinished: {
-                var v = Qt.locale().toDouble(text);
-                if (isNaN(v))
-                    v = 0.0;
-                root.value = v;
-                root.valueChanged();
+                prop.value = text;
             }
-
             ToolTip.visible: root.hovered && root.hint !== ""
             ToolTip.text: root.hint
         }
@@ -119,13 +95,10 @@ Item {
     Component {
         id: boolEditor
         CheckBox {
-            checked: root.value === null ? false : Boolean(root.value)
-
+            checked: prop.value === null ? false : Boolean(prop.value)
             onToggled: {
-                root.value = checked;
-                root.valueChanged();
+                prop.value = checked;
             }
-
             ToolTip.visible: root.hovered && root.hint !== ""
             ToolTip.text: root.hint
         }
