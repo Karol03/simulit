@@ -20,7 +20,7 @@ ApplicationWindow {
     Material.foreground: Material.Grey
 
     // --- Panel state ---
-    property bool propertiesOpen: false
+    property bool simulationSelected: false
     property bool panelOpen: false
     property color normalColor: "#1c1b1f"
     property color hoverColor: "#2a292d"
@@ -55,7 +55,6 @@ ApplicationWindow {
     Frame {
         id: simulationViewFrame
         anchors.fill: parent
-        anchors.margins: 0
         padding: 0
         background: Rectangle {
             border.width: 0
@@ -77,8 +76,9 @@ ApplicationWindow {
             height: parent.height
             color: panelColor
             clip: true
-
-            x: propertiesOpen ? parent.width - width : parent.width
+            topLeftRadius: 3
+            bottomLeftRadius: 3
+            x: simulationSelected ? parent.width - width : parent.width
 
             Behavior on x {
                 NumberAnimation {
@@ -106,12 +106,51 @@ ApplicationWindow {
                         }
                     }
 
-                    // opcjonalny "dół" na oddech
                     Item { Layout.fillWidth: true; height: 18 }
                 }
             }
         }
 
+        // --- Simulation statistics ---
+        Rectangle {
+            id: statisticsPanel
+            width: parent.width * 0.5
+            height: 180
+            color: panelColor
+            clip: true
+            x: parent.width * 0.1
+            y: simulationSelected ? parent.height - height + 14 : parent.height + 14
+            Behavior on y {
+                NumberAnimation {
+                    duration: 260
+                    easing.type: Easing.InOutQuad
+                }
+            }
+            ScrollView {
+                id: statisticsScroll
+                anchors.fill: parent
+                anchors.margins: 12
+
+                ColumnLayout {
+                    id: statisticsColumn
+                    width: propertiesScroll.availableWidth
+                             - propertiesScroll.ScrollBar.vertical.width
+                    spacing: 4
+
+                    Repeater {
+                        model: simulationProvider ? simulationProvider.properties : []
+                        delegate: PropertyNodeDelegate {
+                            Layout.fillWidth: true
+                            prop: modelData
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true; height: 6 }
+                }
+            }
+        }
+
+        // --- Simulation Start/Pause button --
         StartButton {
             id: playButton
             running: false
@@ -133,6 +172,7 @@ ApplicationWindow {
             }
         }
 
+        // --- Simulation stop button --
         StopButton {
             id: stopButton
             anchors.right: parent.right
@@ -200,7 +240,7 @@ ApplicationWindow {
                     onClicked: {
                         root.panelOpen = false
                         simulationProvider.select(text)
-                        root.propertiesOpen = true
+                        root.simulationSelected = true
                         playButton.visible = true
                     }
                 }

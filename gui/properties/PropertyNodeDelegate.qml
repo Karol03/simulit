@@ -21,18 +21,6 @@ Item {
             active: prop !== null
             Layout.fillWidth: true
             sourceComponent: prop.isGroup ? groupDelegate : leafDelegate
-            onPropChanged: {
-                destroyedConn.target = prop
-            }
-
-            Connections {
-                id: destroyedConn
-                target: null
-                function onDestroyed() {
-                    rootLoader.active = false
-                    rootLoader.prop = null
-                }
-            }
         }
     }
 
@@ -94,18 +82,6 @@ Item {
                         property var prop: modelData
                         active: prop !== null
                         sourceComponent: prop.isGroup ? groupDelegate : leafDelegate
-                        onPropChanged: {
-                            destroyedConn.target = prop
-                        }
-
-                        Connections {
-                            id: destroyedConn
-                            target: null
-                            function onDestroyed() {
-                                rootLoader.active = false
-                                rootLoader.prop = null
-                            }
-                        }
                     }
                 }
 
