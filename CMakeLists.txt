@@ -35,6 +35,8 @@ qt_add_qml_module(appsimulit
     QML_FILES
         gui/Main.qml
         gui/MenuButton.qml
+        gui/StartButton.qml
+        gui/StopButton.qml
         gui/properties/PropertyItem.qml
         gui/properties/PropertyNodeDelegate.qml
 )
