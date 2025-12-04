@@ -77,6 +77,7 @@ Item {
         }
     }
 
+    // double
     Component {
         id: doubleEditor
         TextField {

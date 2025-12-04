@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <set>
 
-#include "api/isimulationdll.hpp"
+#include "api/simulation.hpp"
 #include "activesimulationhandler.hpp"
 
 

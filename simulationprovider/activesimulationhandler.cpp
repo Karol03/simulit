@@ -21,11 +21,13 @@ const QString& ActiveSimulationHandler::name() const
 
 void ActiveSimulationHandler::loadProperties()
 {
-    auto* propertyApi = m_simulationDll->properties().get();
-    m_propertyAdapters = std::make_unique<gui::properties::PropertyAdapter>(propertyApi);
-    for (auto* child : propertyApi->children())
+    if (auto& propertyApi = m_simulationDll->properties())
     {
-        createPropertyAdapter(child, m_propertyAdapters.get());
+        m_propertyAdapters = std::make_unique<gui::properties::PropertyAdapter>(propertyApi.get());
+        for (auto* child : propertyApi->children())
+        {
+            createPropertyAdapter(child, m_propertyAdapters.get());
+        }
     }
 }
 

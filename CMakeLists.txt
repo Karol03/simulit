@@ -12,9 +12,13 @@ qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(appsimulit
     main.cpp
-    api/isimulationdll.hpp
+    api/simulation.hpp
+    api/isimulationcontroller.hpp
     api/property.hpp
     api/statistic.hpp
+
+    controller/simulationcontroller.hpp
+    controller/simulationcontroller.cpp
 
     gui/properties/propertyadapter.hpp
 

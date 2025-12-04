@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-#include "api/isimulationdll.hpp"
+#include "api/simulation.hpp"
 
 #include "gui/properties/propertyadapter.hpp"
 
