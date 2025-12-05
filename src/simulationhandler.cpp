@@ -1,6 +1,7 @@
 #include "simulationhandler.hpp"
 
 #include "providers/simulations.hpp"
+#include "providers/constantproperties.hpp"
 #include "providers/properties.hpp"
 #include "providers/statistics.hpp"
 #include "controllers/defaultcontroller.hpp"
@@ -9,6 +10,7 @@
 SimulationHandler::SimulationHandler(QObject* parent)
     : QObject(parent)
     , m_simulationsProvider{nullptr}
+    , m_cPropertiesProvider{new providers::ConstantProperties(this)}
     , m_propertiesProvider{nullptr}
     , m_statisticsProvider{nullptr}
     , m_runtimeController{nullptr}
@@ -75,6 +77,13 @@ QObjectList SimulationHandler::simulations() const
 {
     if (m_simulationsProvider)
         return m_simulationsProvider->obtain();
+    return {};
+}
+
+QObjectList SimulationHandler::cProperties() const
+{
+    if (m_cPropertiesProvider)
+        return m_cPropertiesProvider->obtain();
     return {};
 }
 

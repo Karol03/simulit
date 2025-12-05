@@ -23,6 +23,8 @@ qt_add_executable(appsimulit
     src/simulationhandler.cpp
 
     src/providers/iprovider.hpp
+    src/providers/constantproperties.hpp
+    src/providers/constantproperties.cpp
     src/providers/properties.hpp
     src/providers/properties.cpp
     src/providers/simulations.hpp

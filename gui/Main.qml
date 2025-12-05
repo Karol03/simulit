@@ -104,6 +104,16 @@ ApplicationWindow {
                         }
                     }
 
+                    Item { Layout.fillWidth: true; height: 12 }
+
+                    Repeater {
+                        model: simulationHandler ? simulationHandler.cProperties : []
+                        delegate: PropertyNodeDelegate {
+                            Layout.fillWidth: true
+                            prop: modelData
+                        }
+                    }
+
                     Item { Layout.fillWidth: true; height: 18 }
                 }
             }

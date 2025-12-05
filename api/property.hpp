@@ -187,6 +187,12 @@ inline auto prop(QString groupName, Properties&&... childProperties)
     return std::make_unique<PropertyGroup>(std::move(groupName), nullptr, std::forward<Properties>(childProperties)...);
 }
 
+template <AreProperties... Properties>
+inline auto prop(QString groupName, QObject* parent, Properties&&... childProperties)
+{
+    return std::make_unique<PropertyGroup>(std::move(groupName), std::move(parent), std::forward<Properties>(childProperties)...);
+}
+
 using Props = QVariantMap;
 inline void parse(const QString& prefix, const IProperty* prop, Props& extracted)
 {
