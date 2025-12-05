@@ -21,6 +21,7 @@ qt_add_executable(appsimulit
     controller/simulationcontroller.cpp
 
     gui/properties/propertyadapter.hpp
+    gui/statistics/statisticadapter.hpp
 
     simulationprovider/activesimulationhandler.hpp
     simulationprovider/activesimulationhandler.cpp
@@ -39,6 +40,7 @@ qt_add_qml_module(appsimulit
         gui/StopButton.qml
         gui/properties/PropertyItem.qml
         gui/properties/PropertyNodeDelegate.qml
+        gui/statistics/StatisticItem.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

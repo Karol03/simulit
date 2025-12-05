@@ -6,15 +6,17 @@
 #include "api/isimulationcontroller.hpp"
 
 
-namespace api
+namespace controller
 {
 
-class SimulationController : public ISimulationController
+class SimulationController : public api::ISimulationController
 {
-    Q_OBJECT
-
 public:
     SimulationController(QObject* parent = nullptr);
+
+    bool isReady() const override;
+    bool isRunning() const override;
+    bool isStopped() const override;
 
 public slots:
     void start() override;
@@ -22,7 +24,6 @@ public slots:
     void stop() override;
 
 protected:
-    bool isReady() const override;
     bool waitForStart() override;
     void wait() override;
     void setWaitTime(long unsigned timeBetweenStepsMs) override;
@@ -32,7 +33,7 @@ private:
     std::condition_variable m_cv;
     std::unique_lock<std::mutex> m_lock;
     std::chrono::milliseconds m_waitTime;
-    State m_state;
+    api::State m_state;
 };
 
-}  // namespace api
+}  // namespace controller

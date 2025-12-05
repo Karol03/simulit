@@ -79,7 +79,6 @@ public slots:
 
 signals:
     void valueChanged(const QVariant& v);
-    void valueClear();
 
 private:
     api::IProperty* m_prop;

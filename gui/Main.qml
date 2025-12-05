@@ -7,6 +7,7 @@ import QtQuick.Dialogs
 import QtQuick.Controls.Material
 
 import "properties"
+import "statistics"
 
 
 ApplicationWindow {
@@ -131,17 +132,19 @@ ApplicationWindow {
                 anchors.fill: parent
                 anchors.margins: 12
 
-                ColumnLayout {
-                    id: statisticsColumn
-                    width: propertiesScroll.availableWidth
-                             - propertiesScroll.ScrollBar.vertical.width
-                    spacing: 4
+                GridLayout {
+                    id: statisticsGrid
+                    width: statisticsScroll.availableWidth - statisticsScroll.ScrollBar.vertical.width
+                    rowSpacing: 12
+                    columnSpacing: 16
+                    readonly property int minCellWidth: 210
+                    columns: Math.max(1, Math.min(5, Math.floor(width / minCellWidth)))
 
                     Repeater {
-                        model: simulationProvider ? simulationProvider.properties : []
-                        delegate: PropertyNodeDelegate {
+                        model: simulationProvider ? simulationProvider.statistics : []
+                        delegate: StatisticItem {
                             Layout.fillWidth: true
-                            prop: modelData
+                            stat: modelData
                         }
                     }
 

@@ -28,6 +28,7 @@ public:
         , controller(controller)
     {}
 
+public slots:
     void run();
 
 protected:

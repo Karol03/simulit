@@ -14,12 +14,36 @@ struct IStatistic : public QObject
     Q_OBJECT
 
 public:
-    using QObject::QObject;
+    IStatistic(QObject* parent = nullptr)
+        : m_id{++m_statId}
+    {}
+    IStatistic(const IStatistic&) = delete;
+    IStatistic& operator=(const IStatistic&) = delete;
+    IStatistic(IStatistic&&) = delete;
+    IStatistic& operator=(IStatistic&&) = delete;
 
     virtual QString name() const = 0;
     virtual QString description() const = 0;
     virtual QVariant get() const = 0;
+    virtual bool set(const QVariant& value) = 0;
+    virtual int id() const { return m_id; }
+
+protected:
+    const int m_id;
+
+private:
+    inline static int m_statId = 0;
 };
+
+template <typename T> inline bool convertQVariantStat(const QVariant& v);
+template <> inline bool convertQVariantStat<int>(const QVariant& v)
+{ bool ok = false; v.toInt(&ok); return ok; }
+template <> inline bool convertQVariantStat<double>(const QVariant& v)
+{ bool ok = false; v.toDouble(&ok); return ok; }
+template <> inline bool convertQVariantStat<bool>(const QVariant& v)
+{ return v.isValid(); }
+template <> inline bool convertQVariantStat<QString>(const QVariant& v)
+{ return v.isValid(); }
 
 template <typename T>
 struct Statistic : public IStatistic
@@ -51,6 +75,20 @@ public:
         return QVariant{m_data};
     }
 
+    bool set(const QVariant& value) override
+    {
+        if (convertQVariantStat<T>(value))
+        {
+            auto newValue = value.value<T>();
+            if (m_filter(newValue))
+            {
+                m_data = newValue;
+                return true;
+            }
+        }
+        return false;
+    }
+
 private:
     QString m_name;
     QString m_description;
@@ -78,9 +116,8 @@ class StatisticGroup : public IStatistic
 {
 public:
     template <AreStatistic... Statistics>
-    StatisticGroup(QString name, QObject* parent, Statistics&&... statistics)
+    StatisticGroup(QObject* parent, Statistics&&... statistics)
         : IStatistic(parent)
-        , m_name{std::move(name)}
     {
         m_statistic.reserve(sizeof...(Statistics));
         (m_statistic.emplace_back(
@@ -88,12 +125,13 @@ public:
              ), ...);
     }
 
-    QString name() const final { return m_name; }
+    QString name() const final { return ""; }
     QString description() const final { return ""; }
     QVariant get() const final { return ""; }
+    bool set(const QVariant& value) final { return false; }
+    const Statistics& children() { return m_statistic; }
 
 private:
-    QString m_name;
     Statistics m_statistic;
 };
 
@@ -104,15 +142,9 @@ inline auto stat(StatisticArgs&&... args)
 }
 
 template <AreStatistic... Statistics>
-inline auto stat(QObject* parent, Statistics&&... childStatistics)
+inline auto stat(Statistics&&... childStatistics)
 {
-    return std::make_unique<StatisticGroup>("", std::move(parent), std::forward<Statistics>(childStatistics)...);
-}
-
-template <AreStatistic... Statistics>
-inline auto stat(QString groupName, Statistics&&... childStatistics)
-{
-    return std::make_unique<StatisticGroup>(std::move(groupName), nullptr, std::forward<Statistics>(childStatistics)...);
+    return std::make_unique<StatisticGroup>(nullptr, std::forward<Statistics>(childStatistics)...);
 }
 
 // class Stat

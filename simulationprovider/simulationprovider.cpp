@@ -64,6 +64,8 @@ void SimulationProvider::select(QString name)
         return;
     m_activeSimulationHandler = std::make_unique<ActiveSimulationHandler>(name, m_simulations[name]);
     emit propertiesChanged();
+    emit statisticsChanged();
+    emit controllerChanged();
 }
 
 QStringList SimulationProvider::simulations() const
@@ -89,7 +91,22 @@ QObjectList SimulationProvider::properties() const
 
 QObjectList SimulationProvider::statistics() const
 {
-    return QObjectList();
+    auto result = QObjectList();
+    if (m_activeSimulationHandler && m_activeSimulationHandler->statistics() &&
+        !m_activeSimulationHandler->statistics()->children().empty())
+    {
+        return m_activeSimulationHandler->statistics()->children();
+    }
+    return result;
+}
+
+QObject* SimulationProvider::controller()
+{
+    if (m_activeSimulationHandler && m_activeSimulationHandler->controller())
+    {
+        return m_activeSimulationHandler->controller().get();
+    }
+    return nullptr;
 }
 
 }  // namespace simulationprovider
