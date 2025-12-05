@@ -4,69 +4,73 @@
 namespace controllers
 {
 
-DefaultController::DefaultController()
-    : ISimulationController(nullptr)
+DefaultController::DefaultController(QObject* parent)
+    : IController(parent)
     , m_lock{m_mutex}
     , m_waitTime{0}
-    , m_state{api::State::EReady}
+    , m_state{State::EReady}
 {}
 
 void DefaultController::start()
 {
-    if (m_state == api::State::EReady)
+    if (m_state == State::EReady)
     {
-        m_state = api::State::ERun;
+        m_state = State::ERun;
         m_cv.notify_all();
+        emit started();
     }
 }
 
 void DefaultController::pause()
 {
-    if (m_state == api::State::ERun)
+    if (m_state == State::ERun)
     {
-        m_state = api::State::EPaused;
+        m_state = State::EPaused;
         m_cv.notify_all();
+        emit paused();
     }
 }
 
 void DefaultController::stop()
 {
-    if (m_state == api::State::ERun || m_state == api::State::EPaused)
+    if (m_state == State::ERun || m_state == State::EPaused)
     {
-        m_state = api::State::EStopped;
+        m_state = State::EStopped;
         m_cv.notify_all();
+        emit stopped();
     }
 }
 
 bool DefaultController::isReady() const
 {
-    return m_state == api::State::EReady;
+    return m_state == State::EReady;
 }
 
 bool DefaultController::isRunning() const
 {
-    return m_state == api::State::ERun;
+    return m_state == State::ERun;
 }
 
 bool DefaultController::isStopped() const
 {
-    return m_state == api::State::EStopped;
+    return m_state == State::EStopped;
 }
 
 bool DefaultController::waitForStart()
 {
-    m_cv.wait(m_lock, [this](){ return m_state != api::State::EReady; });
-    return m_state == api::State::ERun;
+    m_cv.wait(m_lock, [this](){ return m_state != State::EReady; });
+    return m_state == State::ERun;
 }
 
-void DefaultController::wait()
+bool DefaultController::wait()
 {
-    if (m_cv.wait_for(m_lock, m_waitTime, [this](){ return m_state != api::State::ERun; }))
+    if (m_cv.wait_for(m_lock, m_waitTime, [this](){ return m_state != State::ERun; }))
     {
-        m_cv.wait(m_lock, [this](){ return m_state != api::State::EPaused; });
-        if (m_state == api::State::EStopped)
-            return;
+        m_cv.wait(m_lock, [this](){ return m_state != State::EPaused; });
+        if (m_state == State::EStopped)
+            return false;
     }
+    return true;
 }
 
 void DefaultController::setWaitTime(long unsigned timeBetweenStepsMs)

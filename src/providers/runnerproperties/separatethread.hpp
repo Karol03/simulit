@@ -2,19 +2,19 @@
 
 #include <QPointer>
 
-#include "iprovider.hpp"
+#include "providers/iprovider.hpp"
 #include "api/property.hpp"
 
 
-namespace providers
+namespace providers::runnerproperties
 {
 
-class ConstantProperties : public IProvider
+class SeparateThread : public IProvider
 {
     Q_OBJECT
 
 public:
-    ConstantProperties(QObject* parent);
+    SeparateThread(QObject* parent);
 
     QObjectList obtain() override;
     adapters::IAdapter* select(const QString& name) override;
@@ -32,4 +32,4 @@ private:
     QObjectList m_squashedPropertyList;
 };
 
-}  // namespace providers
+}  // namespace providers::runnerproperties

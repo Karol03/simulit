@@ -15,22 +15,23 @@ qt_standard_project_setup(REQUIRES 6.8)
 qt_add_executable(appsimulit
     main.cpp
     api/simulation.hpp
-    api/isimulationcontroller.hpp
     api/property.hpp
     api/statistic.hpp
+    api/utils.hpp
+    api/inamed.hpp
 
     src/simulationhandler.hpp
     src/simulationhandler.cpp
 
     src/providers/iprovider.hpp
-    src/providers/constantproperties.hpp
-    src/providers/constantproperties.cpp
     src/providers/properties.hpp
     src/providers/properties.cpp
     src/providers/simulations.hpp
     src/providers/simulations.cpp
     src/providers/statistics.hpp
     src/providers/statistics.cpp
+    src/providers/runnerproperties/separatethread.hpp
+    src/providers/runnerproperties/separatethread.cpp
 
     src/loaders/iloader.hpp
     src/loaders/dllloader.hpp
@@ -41,8 +42,16 @@ qt_add_executable(appsimulit
     src/adapters/property.hpp
     src/adapters/simulationrecord.hpp
 
+    src/controllers/icontroller.hpp
     src/controllers/defaultcontroller.hpp
     src/controllers/defaultcontroller.cpp
+
+    src/runners/irunner.hpp
+    src/runners/iworker.hpp
+    src/runners/separatethread.hpp
+    src/runners/separatethread.cpp
+    src/runners/simpleworker.hpp
+    src/runners/simpleworker.cpp
 
     resources.qrc
 )

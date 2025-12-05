@@ -3,18 +3,18 @@
 #include <QObject>
 #include <condition_variable>
 
-#include "api/isimulationcontroller.hpp"
+#include "icontroller.hpp"
 
 
 namespace controllers
 {
 
-class DefaultController : public api::ISimulationController
+class DefaultController : public IController
 {
     Q_OBJECT
 
 public:
-    DefaultController();
+    DefaultController(QObject* parent);
 
     bool isReady() const override;
     bool isRunning() const override;
@@ -27,7 +27,7 @@ public slots:
 
 protected:
     bool waitForStart() override;
-    void wait() override;
+    bool wait() override;
     void setWaitTime(long unsigned timeBetweenStepsMs) override;
 
 private:
@@ -35,7 +35,7 @@ private:
     std::condition_variable m_cv;
     std::unique_lock<std::mutex> m_lock;
     std::chrono::milliseconds m_waitTime;
-    api::State m_state;
+    State m_state;
 };
 
 }  // namespace controllers

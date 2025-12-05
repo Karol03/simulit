@@ -107,7 +107,7 @@ ApplicationWindow {
                     Item { Layout.fillWidth: true; height: 12 }
 
                     Repeater {
-                        model: simulationHandler ? simulationHandler.cProperties : []
+                        model: simulationHandler ? simulationHandler.runnerProperties : []
                         delegate: PropertyNodeDelegate {
                             Layout.fillWidth: true
                             prop: modelData

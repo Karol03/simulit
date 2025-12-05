@@ -1,6 +1,6 @@
 #include "properties.hpp"
 
-#include "../adapters/property.hpp"
+#include "adapters/property.hpp"
 
 
 namespace providers

@@ -1,19 +1,19 @@
 #include "simulationhandler.hpp"
 
 #include "providers/simulations.hpp"
-#include "providers/constantproperties.hpp"
 #include "providers/properties.hpp"
 #include "providers/statistics.hpp"
 #include "controllers/defaultcontroller.hpp"
+#include "runners/separatethread.hpp"
 
 
 SimulationHandler::SimulationHandler(QObject* parent)
     : QObject(parent)
     , m_simulationsProvider{nullptr}
-    , m_cPropertiesProvider{new providers::ConstantProperties(this)}
     , m_propertiesProvider{nullptr}
     , m_statisticsProvider{nullptr}
     , m_runtimeController{nullptr}
+    , m_simulationRunner{ new runners::SeparateThread(this) }
 {}
 
 void SimulationHandler::load()
@@ -46,7 +46,8 @@ void SimulationHandler::select(QString name)
     if (m_runtimeController)
     {
         m_runtimeController->stop();
-        m_runtimeController = std::make_shared<controllers::DefaultController>();
+        // 'nullptr' as release will be handled by shared_ptr not Qt child mechanism
+        m_runtimeController = std::make_shared<controllers::DefaultController>(nullptr);
     }
 
     if (m_propertiesProvider)
@@ -80,10 +81,10 @@ QObjectList SimulationHandler::simulations() const
     return {};
 }
 
-QObjectList SimulationHandler::cProperties() const
+QObjectList SimulationHandler::runnerProperties() const
 {
-    if (m_cPropertiesProvider)
-        return m_cPropertiesProvider->obtain();
+    if (m_simulationRunner && m_simulationRunner->properties())
+        return m_simulationRunner->properties()->obtain();
     return {};
 }
 

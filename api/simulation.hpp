@@ -3,11 +3,9 @@
 #include <QtPlugin>
 #include <QObject>
 #include <QString>
-#include <memory>
 
 #include "property.hpp"
 #include "statistic.hpp"
-#include "isimulationcontroller.hpp"
 
 
 namespace api
@@ -18,33 +16,20 @@ class ISimulation : public QObject
     Q_OBJECT
 
 public:
-    explicit ISimulation(const IPropertyPtr& properties,
-                         const IStatisticPtr& statistics,
-                         std::shared_ptr<ISimulationController> controller,
-                         QObject* parent = nullptr)
-        : QObject(parent)
-        , props(parse(properties))
-        , stats(parse(statistics))
-        , controller(controller)
-    {}
+    using QObject::QObject;
 
 public slots:
+    virtual void setup(QVariantMap properties,
+                       QVariantMap statistics) = 0;
     virtual void run() = 0;
-
-protected:
-    void wait() { controller->wait(); }
-    void setWaitTime(long unsigned timeBetweenStepsMs) { controller->setWaitTime(timeBetweenStepsMs); }
+    virtual void teardown() = 0;
 
 signals:
     void progress(const QVariantMap& changes);
     void finished();
     void error(const QString& message);
-
-protected:
-    const Props props;
-    Stats stats;
-    std::shared_ptr<ISimulationController> controller;
 };
+
 
 class ISimulationDLL
 {
@@ -53,14 +38,9 @@ public:
 
     virtual QString name() const = 0;
     virtual QString description() const = 0;
-    virtual std::shared_ptr<ISimulation> simulation(std::shared_ptr<ISimulationController> controller) = 0;
-
-    virtual const IPropertyPtr& properties() { return m_properties; }
-    virtual const IStatisticPtr& statistics() { return m_statistics; }
-
-protected:
-    IPropertyPtr m_properties;
-    IStatisticPtr m_statistics;
+    virtual api::ISimulation* create() const = 0;
+    virtual IProperty* properties() const = 0;
+    virtual IStatistic* statistics() const = 0;
 };
 
 }  // namespace api

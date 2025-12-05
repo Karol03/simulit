@@ -1,7 +1,7 @@
 #include "simulations.hpp"
 
-#include "../loaders/dllloader.hpp"
-#include "../adapters/simulationrecord.hpp"
+#include "loaders/dllloader.hpp"
+#include "adapters/simulationrecord.hpp"
 
 #include "api/simulation.hpp"
 
