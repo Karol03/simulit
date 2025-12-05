@@ -79,12 +79,8 @@ public:
     {
         if (convertQVariantStat<T>(value))
         {
-            auto newValue = value.value<T>();
-            if (m_filter(newValue))
-            {
-                m_data = newValue;
-                return true;
-            }
+            m_data = value.value<T>();
+            return true;
         }
         return false;
     }

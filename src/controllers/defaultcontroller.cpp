@@ -1,17 +1,17 @@
-#include "simulationcontroller.hpp"
+#include "defaultcontroller.hpp"
 
 
-namespace controller
+namespace controllers
 {
 
-SimulationController::SimulationController(QObject* parent)
-    : ISimulationController(parent)
+DefaultController::DefaultController()
+    : ISimulationController(nullptr)
     , m_lock{m_mutex}
     , m_waitTime{0}
     , m_state{api::State::EReady}
 {}
 
-void SimulationController::start()
+void DefaultController::start()
 {
     if (m_state == api::State::EReady)
     {
@@ -20,7 +20,7 @@ void SimulationController::start()
     }
 }
 
-void SimulationController::pause()
+void DefaultController::pause()
 {
     if (m_state == api::State::ERun)
     {
@@ -29,7 +29,7 @@ void SimulationController::pause()
     }
 }
 
-void SimulationController::stop()
+void DefaultController::stop()
 {
     if (m_state == api::State::ERun || m_state == api::State::EPaused)
     {
@@ -38,28 +38,28 @@ void SimulationController::stop()
     }
 }
 
-bool SimulationController::isReady() const
+bool DefaultController::isReady() const
 {
     return m_state == api::State::EReady;
 }
 
-bool SimulationController::isRunning() const
+bool DefaultController::isRunning() const
 {
     return m_state == api::State::ERun;
 }
 
-bool SimulationController::isStopped() const
+bool DefaultController::isStopped() const
 {
     return m_state == api::State::EStopped;
 }
 
-bool SimulationController::waitForStart()
+bool DefaultController::waitForStart()
 {
     m_cv.wait(m_lock, [this](){ return m_state != api::State::EReady; });
     return m_state == api::State::ERun;
 }
 
-void SimulationController::wait()
+void DefaultController::wait()
 {
     if (m_cv.wait_for(m_lock, m_waitTime, [this](){ return m_state != api::State::ERun; }))
     {
@@ -69,9 +69,9 @@ void SimulationController::wait()
     }
 }
 
-void SimulationController::setWaitTime(long unsigned timeBetweenStepsMs)
+void DefaultController::setWaitTime(long unsigned timeBetweenStepsMs)
 {
     m_waitTime = std::chrono::duration<long unsigned, std::milli>(timeBetweenStepsMs);
 }
 
-}  // namespace controller
+}  // namespace controllers

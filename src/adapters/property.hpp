@@ -1,30 +1,41 @@
 #pragma once
 
 #include <QObject>
+#include <QPointer>
 #include <QVariant>
 
 #include "api/property.hpp"
+#include "iadapter.hpp"
 
 
-namespace gui::properties
+namespace adapters
 {
 
-class PropertyAdapter : public QObject
+class Property : public IAdapter
 {
     Q_OBJECT
+
     Q_PROPERTY(QString label READ label CONSTANT)
     Q_PROPERTY(QString hint READ hint CONSTANT)
     Q_PROPERTY(QString type READ type CONSTANT)      // "text" / "int" / "double" / "bool"
-    Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged)
+    Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY changed)
     Q_PROPERTY(bool isGroup READ isGroup CONSTANT)
     Q_PROPERTY(QObjectList children READ children CONSTANT)
 
 public:
-    explicit PropertyAdapter(api::IProperty* prop, QObject* parent = nullptr)
-        : QObject(parent)
+    explicit Property(api::IProperty* prop, QObject* parent)
+        : IAdapter(parent)
         , m_prop(prop)
     {
         Q_ASSERT(m_prop);
+
+        if (auto propertyGroup = dynamic_cast<api::PropertyGroup*>(prop))
+        {
+            for (const auto& child : propertyGroup->children())
+            {
+                new adapters::Property(child.get(), this);
+            }
+        }
     }
 
     QString label() const
@@ -65,7 +76,17 @@ public:
 
     bool isGroup() const
     {
-        return m_prop && !m_prop->children().empty();
+        return !QObject::children().empty();
+    }
+
+    QObject* raw() override
+    {
+        return m_prop;
+    }
+
+    const QObject* raw() const override
+    {
+        return m_prop;
     }
 
 public slots:
@@ -74,14 +95,14 @@ public slots:
         if (!m_prop)
             return;
         if (!m_prop->set(v))
-            emit valueChanged(m_prop->get());
+            emit changed(m_prop->get());
     }
 
 signals:
-    void valueChanged(const QVariant& v);
+    void changed(const QVariant& v);
 
 private:
-    api::IProperty* m_prop;
+    QPointer<api::IProperty> m_prop;
 };
 
-}  // namespace gui::properties
+}  // namespace adapters

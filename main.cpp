@@ -3,7 +3,7 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 
-#include "simulationprovider/simulationprovider.hpp"
+#include "simulationhandler.hpp"
 
 
 int main(int argc, char *argv[])
@@ -12,9 +12,9 @@ int main(int argc, char *argv[])
     QQuickStyle::setStyle("Material");
 
     QQmlApplicationEngine engine;
-    simulationprovider::SimulationProvider simulationProvider;
+    SimulationHandler handler;
 
-    engine.rootContext()->setContextProperty("simulationProvider", &simulationProvider);
+    engine.rootContext()->setContextProperty("simulationHandler", &handler);
 
     QObject::connect(
         &engine,
@@ -23,9 +23,6 @@ int main(int argc, char *argv[])
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
     engine.loadFromModule("simulit", "Main");
-
-    // After the engine loads, to see all error dialogs and loaded simulations
-    simulationProvider.loadSimulations();
 
     return app.exec();
 }

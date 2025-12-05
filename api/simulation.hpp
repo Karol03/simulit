@@ -29,10 +29,9 @@ public:
     {}
 
 public slots:
-    void run();
+    virtual void run() = 0;
 
 protected:
-    virtual void doSimulation() = 0;
     void wait() { controller->wait(); }
     void setWaitTime(long unsigned timeBetweenStepsMs) { controller->setWaitTime(timeBetweenStepsMs); }
 

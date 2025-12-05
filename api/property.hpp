@@ -161,6 +161,7 @@ public:
         }
         return {};
     }
+    const Properties& children() { return m_properties; }
 
 private:
     const QString m_name;

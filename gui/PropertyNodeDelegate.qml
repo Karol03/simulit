@@ -17,7 +17,6 @@ Item {
 
         Loader {
             id: rootLoader
-            property var prop: root.prop
             active: prop !== null
             Layout.fillWidth: true
             sourceComponent: prop.isGroup ? groupDelegate : leafDelegate
@@ -55,6 +54,8 @@ Item {
                 anchors.right: parent.right
                 spacing: 6
 
+                Item { height: 12 }
+
                 Label {
                     text: prop.label
                     Layout.fillWidth: true
@@ -73,19 +74,6 @@ Item {
                 }
 
                 Item { height: 6 }
-
-                Repeater {
-                    model: prop.children
-
-                    delegate: Loader {
-                        Layout.fillWidth: true
-                        property var prop: modelData
-                        active: prop !== null
-                        sourceComponent: prop.isGroup ? groupDelegate : leafDelegate
-                    }
-                }
-
-                Item { height: 18 }
             }
         }
     }

@@ -6,9 +6,6 @@ import QtQuick.Shapes
 import QtQuick.Dialogs
 import QtQuick.Controls.Material
 
-import "properties"
-import "statistics"
-
 
 ApplicationWindow {
     id: root
@@ -46,7 +43,7 @@ ApplicationWindow {
     }
 
     Connections {
-        target: simulationProvider
+        target: simulationHandler
         function onErrorOccurred(message) {
             showError(message)
         }
@@ -100,7 +97,7 @@ ApplicationWindow {
                     spacing: 4
 
                     Repeater {
-                        model: simulationProvider ? simulationProvider.properties : []
+                        model: simulationHandler ? simulationHandler.properties : []
                         delegate: PropertyNodeDelegate {
                             Layout.fillWidth: true
                             prop: modelData
@@ -141,7 +138,7 @@ ApplicationWindow {
                     columns: Math.max(1, Math.min(5, Math.floor(width / minCellWidth)))
 
                     Repeater {
-                        model: simulationProvider ? simulationProvider.statistics : []
+                        model: simulationHandler ? simulationHandler.statistics : []
                         delegate: StatisticItem {
                             Layout.fillWidth: true
                             stat: modelData
@@ -207,7 +204,10 @@ ApplicationWindow {
         anchors.margins: 10
         onClicked: {
             if (sidePanel.x !== 0)
+            {
                 panelOpen = !panelOpen
+                simulationHandler.load()
+            }
         }
     }
 
@@ -236,13 +236,13 @@ ApplicationWindow {
             spacing: 1
 
             Repeater {
-                model: simulationProvider ? simulationProvider.simulations : []
+                model: simulationHandler ? simulationHandler.simulations : []
                 delegate: MenuButton {
                     width: parent.width
-                    text: modelData
+                    text: modelData.name
                     onClicked: {
                         root.panelOpen = false
-                        simulationProvider.select(text)
+                        simulationHandler.select(text)
                         root.simulationSelected = true
                         playButton.visible = true
                     }

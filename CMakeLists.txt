@@ -8,6 +8,8 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2)
 
+include_directories(src)
+
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(appsimulit
@@ -17,16 +19,28 @@ qt_add_executable(appsimulit
     api/property.hpp
     api/statistic.hpp
 
-    controller/simulationcontroller.hpp
-    controller/simulationcontroller.cpp
+    src/simulationhandler.hpp
+    src/simulationhandler.cpp
 
-    gui/properties/propertyadapter.hpp
-    gui/statistics/statisticadapter.hpp
+    src/providers/iprovider.hpp
+    src/providers/properties.hpp
+    src/providers/properties.cpp
+    src/providers/simulations.hpp
+    src/providers/simulations.cpp
+    src/providers/statistics.hpp
+    src/providers/statistics.cpp
 
-    simulationprovider/activesimulationhandler.hpp
-    simulationprovider/activesimulationhandler.cpp
-    simulationprovider/simulationprovider.hpp
-    simulationprovider/simulationprovider.cpp
+    src/loaders/iloader.hpp
+    src/loaders/dllloader.hpp
+    src/loaders/dllloader.cpp
+
+    src/adapters/iadapter.hpp
+    src/adapters/statistic.hpp
+    src/adapters/property.hpp
+    src/adapters/simulationrecord.hpp
+
+    src/controllers/defaultcontroller.hpp
+    src/controllers/defaultcontroller.cpp
 
     resources.qrc
 )
@@ -38,9 +52,9 @@ qt_add_qml_module(appsimulit
         gui/MenuButton.qml
         gui/StartButton.qml
         gui/StopButton.qml
-        gui/properties/PropertyItem.qml
-        gui/properties/PropertyNodeDelegate.qml
-        gui/statistics/StatisticItem.qml
+        gui/PropertyItem.qml
+        gui/PropertyNodeDelegate.qml
+        gui/StatisticItem.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

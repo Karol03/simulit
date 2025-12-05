@@ -6,13 +6,15 @@
 #include "api/isimulationcontroller.hpp"
 
 
-namespace controller
+namespace controllers
 {
 
-class SimulationController : public api::ISimulationController
+class DefaultController : public api::ISimulationController
 {
+    Q_OBJECT
+
 public:
-    SimulationController(QObject* parent = nullptr);
+    DefaultController();
 
     bool isReady() const override;
     bool isRunning() const override;
@@ -36,4 +38,4 @@ private:
     api::State m_state;
 };
 
-}  // namespace controller
+}  // namespace controllers
