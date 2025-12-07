@@ -39,7 +39,7 @@ Item {
             verticalAlignment: Text.AlignVCenter
             textFormat: Text.PlainText
 
-            text: stat.label
+            text: stat?.label ?? ""
         }
 
         Label {
@@ -48,7 +48,7 @@ Item {
             font.pixelSize: 11
 
             Layout.alignment: Qt.AlignHCenter
-            text: stat.value
+            text: stat?.value ?? ""
         }
     }
 }

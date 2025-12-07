@@ -11,7 +11,7 @@ Statistics::Statistics(api::ISimulationDLL& simulation, QObject* parent)
 {
     if (!simulation.statistics())
         return;
-    m_rootStatistic = simulation.statistics().get();
+    m_rootStatistic = simulation.statistics();
     traversalMapInsert(m_rootStatistic);
 }
 
@@ -48,29 +48,30 @@ void Statistics::change(const QVariantMap& values)
     emit changed();
 };
 
-void Statistics::traversalMapInsert(api::IStatistic* statistic)
+void Statistics::traversalMapInsert(api::common::IHierarchicalNamedVariable* statistic)
 {
     if (!statistic->name().isEmpty())
-        m_statistics[statistic->name()] = statistic;
+        m_statistics[statistic->name()] = dynamic_cast<api::IStatistic*>(statistic);
 
     if (auto group = dynamic_cast<api::StatisticGroup*>(statistic))
     {
-        for (const auto& child : group->children())
+        for (const auto& child : group->inner())
         {
-            traversalMapInsert(child.get());
+            traversalMapInsert(child);
         }
     }
 }
 
-void Statistics::preorderTraversalSquash(api::IStatistic* statistic, QObjectList& result)
+void Statistics::preorderTraversalSquash(api::common::IHierarchicalNamedVariable* statistic,
+                                         QObjectList& result)
 {
     if (!statistic->name().isEmpty())
-        result.append(new adapters::Statistic(statistic, this));
+        result.append(new adapters::Statistic(dynamic_cast<api::IStatistic*>(statistic), this));
     if (auto group = dynamic_cast<api::StatisticGroup*>(statistic))
     {
-        for (const auto& child : group->children())
+        for (const auto& child : group->inner())
         {
-            preorderTraversalSquash(child.get(), result);
+            preorderTraversalSquash(child, result);
         }
     }
 }

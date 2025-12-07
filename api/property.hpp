@@ -29,8 +29,6 @@ public:
 template <typename T>
 struct Property : public IProperty
 {
-    Q_OBJECT
-
     using Filter = std::function<bool(const T&)>;
 
 public:

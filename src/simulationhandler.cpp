@@ -1,24 +1,18 @@
 #include "simulationhandler.hpp"
 
 #include "providers/simulations.hpp"
-#include "providers/properties.hpp"
-#include "providers/statistics.hpp"
-#include "controllers/defaultcontroller.hpp"
-#include "runners/separatethread.hpp"
 
 
 SimulationHandler::SimulationHandler(QObject* parent)
     : QObject(parent)
     , m_simulationsProvider{nullptr}
-    , m_propertiesProvider{nullptr}
-    , m_statisticsProvider{nullptr}
-    , m_runtimeController{nullptr}
-    , m_simulationRunner{ new runners::SeparateThread(this) }
+    , m_workers{this}
+    , m_selectedWorker{nullptr}
 {}
 
 void SimulationHandler::load()
 {
-    if (!m_statisticsProvider)
+    if (!m_simulationsProvider)
     {
         m_simulationsProvider = new providers::Simulations(this);
         emit simulationsChanged();
@@ -35,43 +29,22 @@ void SimulationHandler::select(QString name)
     if (!simulationPlugin)
         return;
 
-    if (m_loadedSimulationName == name)
+    auto simulationDll = qobject_cast<api::ISimulationDLL*>(simulationPlugin);
+    if (!simulationDll)
+        return;
+
+    if (m_workers.exists(name))
     {
-        // if providers arleady exists, prevent about
-        // reinitialization of the same simulation
-        if (m_propertiesProvider && m_statisticsProvider)
-            return;
+        m_selectedWorker = m_workers[name];
     }
-
-    if (m_runtimeController)
+    else
     {
-        m_runtimeController->stop();
-        // 'nullptr' as release will be handled by shared_ptr not Qt child mechanism
-        m_runtimeController = std::make_shared<controllers::DefaultController>(nullptr);
+        m_selectedWorker = m_workers.create(name, simulationDll);
     }
-
-    if (m_propertiesProvider)
-    {
-        m_propertiesProvider->deleteLater();
-        m_propertiesProvider = nullptr;
-    }
-
-    if (m_statisticsProvider)
-    {
-        m_statisticsProvider->deleteLater();
-        m_statisticsProvider = nullptr;
-    }
-
-    if (auto simulationDll = qobject_cast<api::ISimulationDLL*>(simulationPlugin))
-    {
-        m_propertiesProvider = new providers::Properties(*simulationDll, this);
-        m_statisticsProvider = new providers::Statistics(*simulationDll, this);
-    }
-
-    std::swap(m_loadedSimulationName, name);
-
     emit propertiesChanged();
+    emit workerPropertiesChanged();
     emit statisticsChanged();
+    emit runtimeControllerChanged();
 }
 
 QObjectList SimulationHandler::simulations() const
@@ -81,30 +54,30 @@ QObjectList SimulationHandler::simulations() const
     return {};
 }
 
-QObjectList SimulationHandler::runnerProperties() const
+QObjectList SimulationHandler::workerProperties() const
 {
-    if (m_simulationRunner && m_simulationRunner->properties())
-        return m_simulationRunner->properties()->obtain();
+    if (m_selectedWorker && m_selectedWorker->ownProperties())
+        return m_selectedWorker->ownProperties()->obtain();
     return {};
 }
 
 QObjectList SimulationHandler::properties() const
 {
-    if (m_propertiesProvider)
-        return m_propertiesProvider->obtain();
+    if (m_selectedWorker && m_selectedWorker->simulationProperties())
+        return m_selectedWorker->simulationProperties()->obtain();
     return {};
 }
 
 QObjectList SimulationHandler::statistics() const
 {
-    if (m_statisticsProvider)
-        return m_statisticsProvider->obtain();
+    if (m_selectedWorker && m_selectedWorker->statistics())
+        return m_selectedWorker->statistics()->obtain();
     return {};
 }
 
 QObject* SimulationHandler::runtimeController()
 {
-    if (m_runtimeController)
-        return m_runtimeController.get();
+    if (m_selectedWorker && m_selectedWorker->controller())
+        return m_selectedWorker->controller();
     return {};
 }

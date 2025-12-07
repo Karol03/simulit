@@ -31,9 +31,9 @@ public:
 
         if (auto propertyGroup = dynamic_cast<api::PropertyGroup*>(prop))
         {
-            for (const auto& child : propertyGroup->children())
+            for (const auto& child : propertyGroup->inner())
             {
-                new adapters::Property(child.get(), this);
+                new adapters::Property(dynamic_cast<api::IProperty*>(child), this);
             }
         }
     }

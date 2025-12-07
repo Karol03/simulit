@@ -30,8 +30,8 @@ qt_add_executable(appsimulit
     src/providers/simulations.cpp
     src/providers/statistics.hpp
     src/providers/statistics.cpp
-    src/providers/runnerproperties/separatethread.hpp
-    src/providers/runnerproperties/separatethread.cpp
+    src/providers/workerproperties/simpleworker.hpp
+    src/providers/workerproperties/simpleworker.cpp
 
     src/loaders/iloader.hpp
     src/loaders/dllloader.hpp
@@ -43,15 +43,17 @@ qt_add_executable(appsimulit
     src/adapters/simulationrecord.hpp
 
     src/controllers/icontroller.hpp
-    src/controllers/defaultcontroller.hpp
-    src/controllers/defaultcontroller.cpp
+    src/controllers/simplecontroller.hpp
+    src/controllers/simplecontroller.cpp
 
-    src/runners/irunner.hpp
-    src/runners/iworker.hpp
-    src/runners/separatethread.hpp
-    src/runners/separatethread.cpp
-    src/runners/simpleworker.hpp
-    src/runners/simpleworker.cpp
+    src/workers/iworker.hpp
+    src/workers/iworkerhandler.hpp
+    src/workers/pool.hpp
+    src/workers/pool.cpp
+    src/workers/simpleworkerhandler.hpp
+    src/workers/simpleworkerhandler.cpp
+    src/workers/workerhandlerfactory.hpp
+    src/workers/workerhandlerfactory.cpp
 
     resources.qrc
 )
@@ -61,11 +63,13 @@ qt_add_qml_module(appsimulit
     QML_FILES
         gui/Main.qml
         gui/MenuButton.qml
-        gui/StartButton.qml
-        gui/StopButton.qml
         gui/PropertyItem.qml
         gui/PropertyNodeDelegate.qml
         gui/StatisticItem.qml
+
+        gui/controllers/SimpleController.qml
+        gui/controllers/StartButton.qml
+        gui/controllers/StopButton.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

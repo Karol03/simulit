@@ -24,8 +24,9 @@ public slots:
     void change(const QVariantMap&) override;
 
 private:
-    void traversalMapInsert(api::IStatistic* property);
-    void preorderTraversalSquash(api::IStatistic* property, QObjectList& result);
+    void traversalMapInsert(api::common::IHierarchicalNamedVariable* statistic);
+    void preorderTraversalSquash(api::common::IHierarchicalNamedVariable* statistic,
+                                 QObjectList& result);
 
 private:
     QPointer<api::IStatistic> m_rootStatistic;

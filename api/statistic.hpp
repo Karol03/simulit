@@ -28,8 +28,6 @@ public:
 template <typename T>
 struct Statistic : public IStatistic
 {
-    Q_OBJECT
-
 public:
     Statistic(QString name,
               QString description,

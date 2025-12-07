@@ -24,8 +24,9 @@ public slots:
     void change(const QVariantMap&) override;
 
 private:
-    void traversalMapInsert(api::IProperty* property);
-    void preorderTraversalSquash(api::IProperty* property, QObjectList& result);
+    void traversalMapInsert(api::common::IHierarchicalNamedVariable* property);
+    void preorderTraversalSquash(api::common::IHierarchicalNamedVariable* property,
+                                 QObjectList& result);
 
 private:
     QPointer<api::IProperty> m_rootProperty;

@@ -29,9 +29,9 @@ public:
 
         if (auto statGroup = dynamic_cast<api::StatisticGroup*>(stat))
         {
-            for (const auto& child : statGroup->children())
+            for (const auto& child : statGroup->inner())
             {
-                new Statistic(child.get(), this);
+                new adapters::Statistic(dynamic_cast<api::IStatistic*>(child), this);
             }
         }
     }

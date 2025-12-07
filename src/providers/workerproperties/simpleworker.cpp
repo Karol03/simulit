@@ -1,12 +1,12 @@
-#include "separatethread.hpp"
+#include "simpleworker.hpp"
 
 #include "adapters/property.hpp"
 
 
-namespace providers::runnerproperties
+namespace providers::workerproperties
 {
 
-SeparateThread::SeparateThread(QObject* parent)
+SimpleWorker::SimpleWorker(QObject* parent)
     : IProvider(parent)
 {
     m_rootProperty = api::prop("Przebieg", this,
@@ -17,12 +17,12 @@ SeparateThread::SeparateThread(QObject* parent)
     preorderTraversalSquash(m_rootProperty, m_squashedPropertyList);
 }
 
-QObjectList SeparateThread::obtain()
+QObjectList SimpleWorker::obtain()
 {
     return m_squashedPropertyList;
 }
 
-adapters::IAdapter* SeparateThread::select(const QString& name)
+adapters::IAdapter* SimpleWorker::select(const QString& name)
 {
     if (name.isEmpty())
     {
@@ -35,7 +35,7 @@ adapters::IAdapter* SeparateThread::select(const QString& name)
     return nullptr;
 }
 
-void SeparateThread::change(const QVariantMap& values)
+void SimpleWorker::change(const QVariantMap& values)
 {
     for (const auto& [name, value] : values.asKeyValueRange())
     {
@@ -47,29 +47,30 @@ void SeparateThread::change(const QVariantMap& values)
     emit changed();
 };
 
-void SeparateThread::traversalMapInsert(api::IProperty* property)
+void SimpleWorker::traversalMapInsert(api::common::IHierarchicalNamedVariable* property)
 {
     if (!property->name().isEmpty())
-        m_properties[property->name()] = property;
+        m_properties[property->name()] = dynamic_cast<api::IProperty*>(property);
 
     if (auto group = dynamic_cast<api::PropertyGroup*>(property))
     {
-        for (const auto& child : group->children())
+        for (const auto& child : group->inner())
         {
-            traversalMapInsert(child.get());
+            traversalMapInsert(child);
         }
     }
 }
 
-void SeparateThread::preorderTraversalSquash(api::IProperty* property, QObjectList& result)
+void SimpleWorker::preorderTraversalSquash(api::common::IHierarchicalNamedVariable* property,
+                                           QObjectList& result)
 {
     if (!property->name().isEmpty())
-        result.append(new adapters::Property(property, this));
+        result.append(new adapters::Property(dynamic_cast<api::IProperty*>(property), this));
     if (auto group = dynamic_cast<api::PropertyGroup*>(property))
     {
-        for (const auto& child : group->children())
+        for (const auto& child : group->inner())
         {
-            preorderTraversalSquash(child.get(), result);
+            preorderTraversalSquash(child, result);
         }
     }
 }

@@ -3,8 +3,7 @@
 #include <QObject>
 
 #include "providers/iprovider.hpp"
-#include "controllers/icontroller.hpp"
-#include "runners/irunner.hpp"
+#include "workers/pool.hpp"
 
 
 class SimulationHandler : public QObject
@@ -12,7 +11,7 @@ class SimulationHandler : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QObjectList simulations READ simulations NOTIFY simulationsChanged)
-    Q_PROPERTY(QObjectList runnerProperties READ runnerProperties NOTIFY runnerPropertiesChanged)
+    Q_PROPERTY(QObjectList workerProperties READ workerProperties NOTIFY workerPropertiesChanged)
     Q_PROPERTY(QObjectList properties READ properties NOTIFY propertiesChanged)
     Q_PROPERTY(QObjectList statistics READ statistics NOTIFY statisticsChanged)
     Q_PROPERTY(QObject* runtimeController READ runtimeController NOTIFY runtimeControllerChanged)
@@ -24,7 +23,7 @@ public:
     Q_INVOKABLE void select(QString name);
 
     QObjectList simulations() const;
-    QObjectList runnerProperties() const;
+    QObjectList workerProperties() const;
     QObjectList properties() const;
     QObjectList statistics() const;
     QObject* runtimeController();
@@ -32,7 +31,7 @@ public:
 signals:
     void errorOccurred(const QString &message);
     void simulationsChanged();
-    void runnerPropertiesChanged();
+    void workerPropertiesChanged();
     void propertiesChanged();
     void statisticsChanged();
     void runtimeControllerChanged();
@@ -40,9 +39,6 @@ signals:
 private:
     QString m_loadedSimulationName;
     providers::IProvider* m_simulationsProvider;
-    providers::IProvider* m_propertiesProvider;
-    providers::IProvider* m_statisticsProvider;
-    // as shared pointer because is shared with the simulation runner
-    std::shared_ptr<controllers::IController> m_runtimeController;
-    runners::IRunner* m_simulationRunner;
+    workers::Pool m_workers;
+    workers::IWorkerHandler* m_selectedWorker;
 };

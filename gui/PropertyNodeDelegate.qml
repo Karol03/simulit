@@ -17,9 +17,8 @@ Item {
 
         Loader {
             id: rootLoader
-            active: prop !== null
             Layout.fillWidth: true
-            sourceComponent: prop.isGroup ? groupDelegate : leafDelegate
+            sourceComponent: prop ? (prop.isGroup ? groupDelegate : leafDelegate) : null
         }
     }
 
@@ -29,11 +28,11 @@ Item {
         PropertyItem {
             id: leafItem
             Layout.fillWidth: true
-            label: prop.label
-            type: prop.type
-            hint: prop.hint
-            Component.onCompleted: value = prop.value
-            onValueChanged: prop.value = value
+            label: prop?.label ?? ""
+            type: prop?.type ?? ""
+            hint: prop?.hint ?? ""
+            Component.onCompleted: value = prop?.value
+            onValueChanged: prop && (prop.value = value)
         }
     }
 
@@ -57,7 +56,7 @@ Item {
                 Item { height: 12 }
 
                 Label {
-                    text: prop.label
+                    text: prop?.label ?? ""
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignHCenter
                     horizontalAlignment: Text.AlignHCenter

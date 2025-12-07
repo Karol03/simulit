@@ -11,7 +11,7 @@ Properties::Properties(api::ISimulationDLL& simulation, QObject* parent)
 {
     if (!simulation.properties())
         return;
-    m_rootProperty = simulation.properties().get();
+    m_rootProperty = simulation.properties();
     traversalMapInsert(m_rootProperty);
 }
 
@@ -48,29 +48,30 @@ void Properties::change(const QVariantMap& values)
     emit changed();
 };
 
-void Properties::traversalMapInsert(api::IProperty* property)
+void Properties::traversalMapInsert(api::common::IHierarchicalNamedVariable* property)
 {
     if (!property->name().isEmpty())
-        m_properties[property->name()] = property;
+        m_properties[property->name()] = dynamic_cast<api::IProperty*>(property);
 
     if (auto group = dynamic_cast<api::PropertyGroup*>(property))
     {
-        for (const auto& child : group->children())
+        for (const auto& child : group->inner())
         {
-            traversalMapInsert(child.get());
+            traversalMapInsert(child);
         }
     }
 }
 
-void Properties::preorderTraversalSquash(api::IProperty* property, QObjectList& result)
+void Properties::preorderTraversalSquash(api::common::IHierarchicalNamedVariable* property,
+                                         QObjectList& result)
 {
     if (!property->name().isEmpty())
-        result.append(new adapters::Property(property, this));
+        result.append(new adapters::Property(dynamic_cast<api::IProperty*>(property), this));
     if (auto group = dynamic_cast<api::PropertyGroup*>(property))
     {
-        for (const auto& child : group->children())
+        for (const auto& child : group->inner())
         {
-            preorderTraversalSquash(child.get(), result);
+            preorderTraversalSquash(child, result);
         }
     }
 }
