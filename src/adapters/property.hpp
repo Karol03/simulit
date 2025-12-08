@@ -4,7 +4,7 @@
 #include <QPointer>
 #include <QVariant>
 
-#include "api/property.hpp"
+#include "api/variable.hpp"
 #include "iadapter.hpp"
 
 
@@ -23,17 +23,17 @@ class Property : public IAdapter
     Q_PROPERTY(QObjectList children READ children CONSTANT)
 
 public:
-    explicit Property(api::IProperty* prop, QObject* parent)
+    explicit Property(api::IVariable* prop, QObject* parent)
         : IAdapter(parent)
         , m_prop(prop)
     {
         Q_ASSERT(m_prop);
 
-        if (auto propertyGroup = dynamic_cast<api::PropertyGroup*>(prop))
+        if (auto propertyGroup = dynamic_cast<api::VariableGroup*>(prop))
         {
             for (const auto& child : propertyGroup->inner())
             {
-                new adapters::Property(dynamic_cast<api::IProperty*>(child), this);
+                new adapters::Property(dynamic_cast<api::IVariable*>(child), this);
             }
         }
     }
@@ -102,7 +102,7 @@ signals:
     void changed(const QVariant& v);
 
 private:
-    QPointer<api::IProperty> m_prop;
+    QPointer<api::IVariable> m_prop;
 };
 
 }  // namespace adapters

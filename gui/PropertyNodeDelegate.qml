@@ -5,7 +5,7 @@ import QtQuick.Controls
 Item {
     id: root
 
-    property var prop: null  // IProperty (Property or PropertyGroup)
+    property var prop: null  // Property variable (Variable<T> or VariablesGroup)
 
     implicitWidth: column.implicitWidth
     implicitHeight: column.implicitHeight

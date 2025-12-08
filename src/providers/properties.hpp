@@ -3,7 +3,7 @@
 #include <QPointer>
 
 #include "iprovider.hpp"
-#include "api/property.hpp"
+#include "api/variable.hpp"
 #include "api/simulation.hpp"
 
 
@@ -21,16 +21,13 @@ public:
     adapters::IAdapter* select(const QString& name) override;
 
 public slots:
-    void change(const QVariantMap&) override;
+    void updateFromMap(const QVariantMap& update) override;
 
 private:
-    void traversalMapInsert(api::common::IHierarchicalNamedVariable* property);
-    void preorderTraversalSquash(api::common::IHierarchicalNamedVariable* property,
-                                 QObjectList& result);
+    void createAdapters(api::Variables properties);
 
 private:
-    QPointer<api::IProperty> m_rootProperty;
-    QMap<QString, QPointer<api::IProperty>> m_properties;
+    QObjectList m_adapters;
 };
 
 }  // namespace providers

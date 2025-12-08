@@ -160,16 +160,12 @@ ApplicationWindow {
             }
         }
 
-        // --- Simulation Start/Pause button --
+        // --- Simulation Start/Pause/Stop buttons --
         Loader {
             id: controllerView
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.rightMargin: 256
-            anchors.bottomMargin: 32
-            source: simulationHandler && simulationHandler.runtimeController
-                    ? simulationHandler.runtimeController.uiSource   // Uwaga na wielkość liter
-                    : ""
+            anchors.fill: parent
+            property var controller: simulationHandler ? simulationHandler.runtimeController : null
+            source: controller ? controller.uiSource : ""
         }
     }
 

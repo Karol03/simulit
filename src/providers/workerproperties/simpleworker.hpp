@@ -3,7 +3,7 @@
 #include <QPointer>
 
 #include "providers/iprovider.hpp"
-#include "api/property.hpp"
+#include "api/variable.hpp"
 
 
 namespace providers::workerproperties
@@ -20,17 +20,14 @@ public:
     adapters::IAdapter* select(const QString& name) override;
 
 public slots:
-    void change(const QVariantMap&) override;
+    void updateFromMap(const QVariantMap& update) override;
 
 private:
-    void traversalMapInsert(api::common::IHierarchicalNamedVariable* property);
-    void preorderTraversalSquash(api::common::IHierarchicalNamedVariable* property,
-                                 QObjectList& result);
+    void createAdapters();
 
 private:
-    api::IProperty* m_rootProperty;
-    QMap<QString, QPointer<api::IProperty>> m_properties;
-    QObjectList m_squashedPropertyList;
+    api::IVariable* m_rootProperty;
+    QObjectList m_adapters;
 };
 
 }  // namespace providers::workerproperties

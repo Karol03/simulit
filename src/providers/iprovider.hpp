@@ -27,7 +27,7 @@ public:
     virtual adapters::IAdapter* select(const QString& name) = 0;
 
 public slots:
-    virtual void change(const QVariantMap&) = 0;
+    virtual void updateFromMap(const QVariantMap&) = 0;
 
 signals:
     void changed();

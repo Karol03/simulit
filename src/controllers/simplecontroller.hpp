@@ -12,18 +12,25 @@ class SimpleController : public IController
 {
     Q_OBJECT
 
-    enum class State
-    {
-        EReady,
-        ERunning,
-        EPaused,
-        EStopped
-    };
+    Q_PROPERTY(State state READ state NOTIFY stateChanged)
+
+public:
+    enum class State { Ready, Running, Paused, Stopped };
+    Q_ENUM(State)
 
 public:
     SimpleController(QObject* parent);
 
+    Q_INVOKABLE void start();
+    Q_INVOKABLE void pause();
+    Q_INVOKABLE void stop();
+    Q_INVOKABLE void restart();
+
     QUrl uiSource() const override;
+    State state() const;
+
+signals:
+    void stateChanged();
 
 private:
     State m_state;

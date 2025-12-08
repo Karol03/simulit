@@ -1,10 +1,11 @@
 #pragma once
 
 #include <QPointer>
+#include <optional>
 
 #include "iprovider.hpp"
 #include "api/simulation.hpp"
-#include "api/statistic.hpp"
+#include "api/variable.hpp"
 
 
 namespace providers
@@ -21,16 +22,18 @@ public:
     adapters::IAdapter* select(const QString& name) override;
 
 public slots:
-    void change(const QVariantMap&) override;
+    void updateFromMap(const QVariantMap& update) override;
+    void updateWatched(const api::VariableMapSnapshot& update);
+
+signals:
+    void updated();
 
 private:
-    void traversalMapInsert(api::common::IHierarchicalNamedVariable* statistic);
-    void preorderTraversalSquash(api::common::IHierarchicalNamedVariable* statistic,
-                                 QObjectList& result);
+    void createAdapters(api::VariableMap statistics);
 
 private:
-    QPointer<api::IStatistic> m_rootStatistic;
-    QMap<QString, QPointer<api::IStatistic>> m_statistics;
+    QObjectList m_adapters;
+    std::optional<api::VariableWatchList> m_watchList;
 };
 
 }  // namespace providers

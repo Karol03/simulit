@@ -11,69 +11,48 @@ Statistics::Statistics(api::ISimulationDLL& simulation, QObject* parent)
 {
     if (!simulation.statistics())
         return;
-    m_rootStatistic = simulation.statistics();
-    traversalMapInsert(m_rootStatistic);
+    createAdapters(simulation.statistics());
 }
 
 QObjectList Statistics::obtain()
 {
-    auto result = QObjectList{};
-    if (m_rootStatistic)
-        preorderTraversalSquash(m_rootStatistic, result);
-    return result;
+    return m_adapters;
 }
 
 adapters::IAdapter* Statistics::select(const QString& name)
 {
-    if (name.isEmpty())
-    {
-        return new adapters::Statistic(m_rootStatistic, this);
-    }
-    if (m_statistics.contains(name))
-    {
-        return new adapters::Statistic(m_statistics[name], this);
-    }
+    // select any Statistics do nothing
     return nullptr;
 }
 
-void Statistics::change(const QVariantMap& values)
+void Statistics::createAdapters(api::VariableMap statistics)
 {
-    for (const auto& [name, value] : values.asKeyValueRange())
+    m_watchList = statistics.watch();
+    m_adapters.reserve(m_watchList->size());
+    for (int i = 0; i < statistics.size(); ++i)
     {
-        if (m_statistics.contains(name) && m_statistics[name])
+        auto variable = statistics.number(i);
+        if (!variable->name().isEmpty())
         {
-            m_statistics[name]->set(value);
-        }
-    }
-    emit changed();
-};
-
-void Statistics::traversalMapInsert(api::common::IHierarchicalNamedVariable* statistic)
-{
-    if (!statistic->name().isEmpty())
-        m_statistics[statistic->name()] = dynamic_cast<api::IStatistic*>(statistic);
-
-    if (auto group = dynamic_cast<api::StatisticGroup*>(statistic))
-    {
-        for (const auto& child : group->inner())
-        {
-            traversalMapInsert(child);
+            m_adapters.append(new adapters::Statistic(variable->name(),
+                                                      variable->description(),
+                                                      *m_watchList,
+                                                      i,
+                                                      this));
         }
     }
 }
 
-void Statistics::preorderTraversalSquash(api::common::IHierarchicalNamedVariable* statistic,
-                                         QObjectList& result)
+void Statistics::updateFromMap(const QVariantMap& update)
 {
-    if (!statistic->name().isEmpty())
-        result.append(new adapters::Statistic(dynamic_cast<api::IStatistic*>(statistic), this));
-    if (auto group = dynamic_cast<api::StatisticGroup*>(statistic))
-    {
-        for (const auto& child : group->inner())
-        {
-            preorderTraversalSquash(child, result);
-        }
-    }
+    m_watchList->update(update);
+    emit updated();
+}
+
+void Statistics::updateWatched(const api::VariableMapSnapshot& update)
+{
+    m_watchList->update(update);
+    emit updated();
 }
 
 }  // namespace providers

@@ -4,7 +4,7 @@
 #include <QPointer>
 #include <QVariant>
 
-#include "api/statistic.hpp"
+#include "api/variable.hpp"
 #include "iadapter.hpp"
 
 
@@ -21,64 +21,64 @@ class Statistic : public IAdapter
     Q_PROPERTY(QObjectList children READ children CONSTANT)
 
 public:
-    explicit Statistic(api::IStatistic* stat, QObject* parent)
+    explicit Statistic(QString label,
+                       QString hint,
+                       api::VariableWatchList& watchedVariables,
+                       int variableId,
+                       QObject* parent)
         : IAdapter(parent)
-        , m_stat(stat)
-    {
-        Q_ASSERT(m_stat);
-
-        if (auto statGroup = dynamic_cast<api::StatisticGroup*>(stat))
-        {
-            for (const auto& child : statGroup->inner())
-            {
-                new adapters::Statistic(dynamic_cast<api::IStatistic*>(child), this);
-            }
-        }
-    }
+        , m_watchedVariables{watchedVariables}
+        , m_label{std::move(label)}
+        , m_hint{std::move(hint)}
+        , m_id{variableId}
+    {}
 
     QString label() const
     {
-        return m_stat->name();
+        return m_label;
     }
 
     QString hint() const
     {
-        return m_stat->description();
+        return m_hint;
     }
 
     QVariant value() const
     {
-        return m_stat->get();
+        return m_watchedVariables[m_id];
     }
 
-    void setValue(const QVariant& v)
+    void setValue(const QVariant&)
     {
-        if (!m_stat)
-            return;
-        if (!m_stat->set(v))
-            emit changed(m_stat->get());
+        Q_ASSERT("Setting stats from code not available");
     }
 
     QObjectList children() const
     {
+        Q_ASSERT("Calling children on adapters::Statistics is invalid");
         return QObject::children();
     }
 
-    QObject* raw() override
+    QObject* raw()
     {
-        return m_stat;
+        Q_ASSERT("Calling raw on adapters::Statistics is invalid");
+        return nullptr;
     }
 
-    const QObject* raw() const override
+    const QObject* raw() const
     {
-        return m_stat;
+        Q_ASSERT("Calling raw on adapters::Statistics is invalid");
+        return nullptr;
     }
 
 signals:
     void changed(const QVariant& v);
 
 private:
-    QPointer<api::IStatistic> m_stat;
+    api::VariableWatchList& m_watchedVariables;
+    const QString m_label;
+    const QString m_hint;
+    const int m_id;
 };
 
 }  // namespace adapters

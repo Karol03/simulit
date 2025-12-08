@@ -9,70 +9,38 @@ namespace providers::workerproperties
 SimpleWorker::SimpleWorker(QObject* parent)
     : IProvider(parent)
 {
-    m_rootProperty = api::prop("Przebieg", this,
-           api::prop<int>("Liczba przebiegów", "Liczba powtórzeń symulacji, im większa, tym dokładniejsze wyniki <1, 10'000'000>", 1, [](const int& value) { return 0 < value && value <= 10'000'000; }),
-           api::prop<int>("Ziarno", "Ustalona wartość inicjalizująca generator losowy w celu powtarzalności wyników (random seed). Ustaw 0 dla losowego ziarna", 0, [](const int& value) { return true; }),
-           api::prop<int>("Opóźnienie", "Opóźnienie pomiędzy kolejnymi iteracjami (w milisekundach <0-3000>)", 20, [](const int& value) { return 0 <= value && value <= 3000; }));
-    traversalMapInsert(m_rootProperty);
-    preorderTraversalSquash(m_rootProperty, m_squashedPropertyList);
+    m_rootProperty = api::var("Przebieg", this,
+                              api::var<int>("Liczba przebiegów", "Liczba powtórzeń symulacji, im większa, tym dokładniejsze wyniki <1, 10'000'000>", 1, [](const int& value) { return 0 < value && value <= 10'000'000; }),
+                              api::var<int>("Ziarno", "Ustalona wartość inicjalizująca generator losowy w celu powtarzalności wyników (random seed). Ustaw 0 dla losowego ziarna", 0, [](const int& value) { return true; }),
+                              api::var<int>("Opóźnienie", "Opóźnienie pomiędzy kolejnymi iteracjami (w milisekundach <0-3000>)", 20, [](const int& value) { return 0 <= value && value <= 3000; }));
+    createAdapters();
 }
 
 QObjectList SimpleWorker::obtain()
 {
-    return m_squashedPropertyList;
+    return m_adapters;
 }
 
-adapters::IAdapter* SimpleWorker::select(const QString& name)
+adapters::IAdapter* SimpleWorker::select(const QString&)
 {
-    if (name.isEmpty())
-    {
-        return new adapters::Property(m_rootProperty, this);
-    }
-    if (m_properties.contains(name))
-    {
-        return new adapters::Property(m_properties[name], this);
-    }
+    // select any of SimpleWorker properties do nothing
     return nullptr;
 }
 
-void SimpleWorker::change(const QVariantMap& values)
+void SimpleWorker::createAdapters()
 {
-    for (const auto& [name, value] : values.asKeyValueRange())
+    QObjectList variablesWithName;
+    m_rootProperty->preorderTraversalSquash(variablesWithName,
+                                            [](const auto& variable) { return !variable.name().isEmpty(); });
+    for (auto& property : variablesWithName)
     {
-        if (m_properties.contains(name) && m_properties[name])
-        {
-            m_properties[name]->set(value);
-        }
-    }
-    emit changed();
-};
-
-void SimpleWorker::traversalMapInsert(api::common::IHierarchicalNamedVariable* property)
-{
-    if (!property->name().isEmpty())
-        m_properties[property->name()] = dynamic_cast<api::IProperty*>(property);
-
-    if (auto group = dynamic_cast<api::PropertyGroup*>(property))
-    {
-        for (const auto& child : group->inner())
-        {
-            traversalMapInsert(child);
-        }
+        m_adapters.append(new adapters::Property(dynamic_cast<api::IVariable*>(property), this));
     }
 }
 
-void SimpleWorker::preorderTraversalSquash(api::common::IHierarchicalNamedVariable* property,
-                                           QObjectList& result)
+void SimpleWorker::updateFromMap(const QVariantMap& update)
 {
-    if (!property->name().isEmpty())
-        result.append(new adapters::Property(dynamic_cast<api::IProperty*>(property), this));
-    if (auto group = dynamic_cast<api::PropertyGroup*>(property))
-    {
-        for (const auto& child : group->inner())
-        {
-            preorderTraversalSquash(child, result);
-        }
-    }
+    /* properties updated only from GUI, ignore */
 }
 
 }  // namespace providers

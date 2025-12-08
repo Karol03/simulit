@@ -4,8 +4,8 @@
 #include <QObject>
 #include <QString>
 
-#include "property.hpp"
-#include "statistic.hpp"
+#include "variable.hpp"
+#include "tools.hpp"
 
 
 namespace api
@@ -35,7 +35,7 @@ signals:
      * if you need to update it more frequently just call
      * emit progress(stats)
      */
-    void progress(const QVariantMap& changes);
+    void progress(const VariableMap::Snapshot& changes);
 
     /**
      * @brief finished
@@ -53,9 +53,9 @@ public:
 
     virtual QString name() const = 0;
     virtual QString description() const = 0;
-    virtual api::ISimulation* create() const = 0;
-    virtual IProperty* properties() const = 0;
-    virtual IStatistic* statistics() const = 0;
+    virtual ISimulation* create() const = 0;
+    virtual Variables properties() const = 0;
+    virtual Variables statistics() const = 0;
 };
 
 
@@ -66,20 +66,30 @@ class SimpleSimulation : public ISimulation
 public:
     using ISimulation::ISimulation;
 
-    virtual void setup(QVariantMap properties) = 0;
-    virtual void run() = 0;
+    virtual void setup(VariableWatchList properties) = 0;
+    virtual void run(NumberGenerator& generator) = 0;
     virtual void teardown() = 0;
 
 public slots:
-    void __setup(QVariantMap properties, QVariantMap statistics)
+    void __setup(Variables properties, Variables statistics)
     {
-        stats.reinitialize(std::move(statistics));
+        stats.reinitialize(statistics);
+        emit progress(stats);
+        setup(VariableMap(properties).watch());
     };
-    void __start() { emit progress(stats); }
-    void __teardown() { teardown(); emit finished(); }
+    void __start(NumberGenerator& generator)
+    {
+        run(generator);
+        emit progress(stats);
+    }
+    void __teardown()
+    {
+        teardown();
+        emit finished();
+    }
 
 protected:
-    utils::BindingMap stats;
+    VariableMap stats;
 };
 
 

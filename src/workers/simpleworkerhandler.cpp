@@ -49,7 +49,7 @@ SimpleWorkerHandler::SimpleWorkerHandler(api::ISimulation* simulation,
     //     parsedProperties["Przebieg::Opóźnienie"].toInt()
     // };
     // update statistics on progress signal
-    QObject::connect(m_simulation, &api::ISimulation::progress, m_statistics, &providers::IProvider::change);
+    // QObject::connect(m_simulation, &api::ISimulation::progress, m_statistics, &providers::IProvider::change);
 
     // stop simulation on error
     // controller will display error on screen
