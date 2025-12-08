@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QQmlEngine>
 
 #include "icontroller.hpp"
 
@@ -11,11 +12,12 @@ namespace controllers
 class SimpleController : public IController
 {
     Q_OBJECT
+    QML_ELEMENT
 
     Q_PROPERTY(State state READ state NOTIFY stateChanged)
 
 public:
-    enum class State { Ready, Running, Paused, Stopped };
+    enum State { Ready, Running, Paused, Stopped };
     Q_ENUM(State)
 
 public:

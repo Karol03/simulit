@@ -14,7 +14,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.rightMargin: 300
         anchors.bottomMargin: 32
-        visible: true
+        visible: controller ? 1 : 0
 
         Behavior on opacity {
             NumberAnimation { duration: 200 }
@@ -27,15 +27,15 @@ Item {
         anchors.bottom: parent.bottom
         anchors.rightMargin: 256
         anchors.bottomMargin: 12
-        visible : !!controller &&
-                  (controller.state === SimpleController.Running ||
-                   controller.state === SimpleController.Paused)
+        visible : root.controller &&
+                  (root.controller.state === SimpleController.Running ||
+                   root.controller.state === SimpleController.Paused)
         opacity: visible ? 1 : 0
 
         Behavior on opacity {
             NumberAnimation { duration: 200 }
         }
 
-        onClicked: controller.stop()
+        onClicked: root.controller.stop()
     }
 }

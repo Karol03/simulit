@@ -2,26 +2,56 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
 
+
 Button {
     id: control
 
     property var controller
 
-    property bool running: !!controller &&
-                           controller.state === SimpleController.Running
-    property bool stopped: !!controller &&
-                           controller.state === SimpleController.Stopped
-    property bool readyOrPaused: !!controller &&
-                                 (controller.state === SimpleController.Ready ||
-                                  controller.state === SimpleController.Paused)
+    property bool readyOrPaused: controller.state === SimpleController.Ready ||
+                                 controller.state === SimpleController.Paused
+    property bool running: controller.state === SimpleController.Running
+    property bool stopped: controller.state === SimpleController.Stopped
+    property color readyOrPausedColor: "#2ecc71"
     property color runningColor: "#3498db"
-    property color pauseColor: "#2ecc71"
-    property color restartColor: "#e67e22"
+    property color stoppedColor: "#e68522"
+
+    property real baseScale: 1.0
+    property real hoverScale: 1.05
+    property real pressScale: 0.93
+    property real currentScale: 0.0
+
+    function updateScale() {
+        currentScale = control.down ? pressScale
+                                    : (control.hovered ? hoverScale : baseScale);
+    }
 
     width: 66
     height: 66
     hoverEnabled: true
     text: ""
+
+    transform: Scale {
+        id: scaleTransform
+        origin.x: control.width / 2
+        origin.y: control.height / 2
+        xScale: control.currentScale
+        yScale: control.currentScale
+    }
+
+    Behavior on currentScale {
+        NumberAnimation {
+            duration: 160
+            easing.type: Easing.OutBack
+        }
+    }
+
+    Component.onCompleted: {
+        updateScale()
+    }
+
+    onHoveredChanged: updateScale()
+    onDownChanged: updateScale()
 
     background: Item {
         anchors.fill: parent
@@ -31,8 +61,8 @@ Button {
             anchors.fill: parent
             radius: width / 2
 
-            property color colorMain: stopped ? restartColor
-                                              : (running ? runningColor : pauseColor)
+            property color colorMain: readyOrPaused ? readyOrPausedColor
+                                                    : (running ? runningColor : stoppedColor)
 
             gradient: Gradient {
                 GradientStop { position: 0.0; color: Qt.lighter(bg.colorMain, 1.25) }
@@ -42,9 +72,6 @@ Button {
 
             border.width: control.hovered ? 2 : 1
             border.color: "#ffffff40"
-
-            scale: control.down ? 0.93 : 1.0
-            Behavior on scale { NumberAnimation { duration: 80 } }
         }
 
         MultiEffect {
@@ -103,34 +130,38 @@ Button {
         Canvas {
             id: iconRestart
             anchors.centerIn: parent
-            width: parent.width * 0.50
-            height: parent.height * 0.50
+            width: parent.width * 0.7
+            height: parent.height * 0.7
             visible: stopped
 
             onPaint: {
                 var ctx = getContext("2d");
                 ctx.reset();
+
                 ctx.strokeStyle = "white";
-                ctx.lineWidth = width * 0.12;
-                ctx.lineCap = "round";
+                ctx.fillStyle   = "white";
+                ctx.lineWidth   = width * 0.09;
+                ctx.lineCap     = "round";
 
-                let cx = width * 0.50;
-                let cy = height * 0.55;
-                let r  = width * 0.35;
+                let cx = width  * 0.47;
+                let cy = height * 0.50;
+                let r  = width  * 0.34;
 
+                let startAngle = Math.PI * 1.42;
+                let endAngle   = Math.PI * 2.02;
+
+                // Łuk
                 ctx.beginPath();
-                ctx.arc(cx, cy, r, Math.PI * 0.25, Math.PI * 1.35, true);
+                ctx.arc(cx, cy, r, startAngle, endAngle, true);
                 ctx.stroke();
 
+                ctx.fillStyle = "white";
                 ctx.beginPath();
-                let arrowX = cx - r * Math.cos(Math.PI * 1.35);
-                let arrowY = cy - r * Math.sin(Math.PI * 1.35);
-                let size = width * 0.22;
-
-                ctx.moveTo(arrowX, arrowY);
-                ctx.lineTo(arrowX - size * 0.6, arrowY + size * 0.2);
-                ctx.lineTo(arrowX - size * 0.1, arrowY + size * 0.6);
-                ctx.stroke();
+                ctx.moveTo(width * 0.61, height * 0.5);
+                ctx.lineTo(width * 0.99, height * 0.5);
+                ctx.lineTo(width * 0.8, height * 0.22);
+                ctx.closePath();
+                ctx.fill();
             }
         }
     }

@@ -165,7 +165,13 @@ ApplicationWindow {
             id: controllerView
             anchors.fill: parent
             property var controller: simulationHandler ? simulationHandler.runtimeController : null
-            source: controller ? controller.uiSource : ""
+            onControllerChanged: {
+                if (controller) {
+                    setSource(controller.uiSource, { "controller": controller })
+                } else {
+                    source = ""
+                }
+            }
         }
     }
 

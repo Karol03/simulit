@@ -76,6 +76,8 @@ qt_add_qml_module(appsimulit
         gui/controllers/SimpleController.qml
         gui/controllers/FocalButton.qml
         gui/controllers/AssistButton.qml
+    SOURCES
+        src/controllers/simplecontroller.hpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -87,6 +89,12 @@ set_target_properties(appsimulit PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+)
+
+# required include for enum generation
+target_include_directories(appsimulit
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/controllers
 )
 
 target_link_libraries(appsimulit
