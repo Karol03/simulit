@@ -80,7 +80,7 @@ ApplicationWindow {
             anchors.topMargin: 20
             visible: simulationSelected && simulationHandler
             opacity: visible ? 1 : 0
-            y: visible ? anchors.topMargin : anchors.topMargin + 20   // lekki slide
+            y: visible ? anchors.topMargin : anchors.topMargin + 20
 
             Behavior on opacity {
                 NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
@@ -298,7 +298,6 @@ ApplicationWindow {
             anchors.margins: 10
             spacing: 8
 
-            // Nagłówek panelu symulacji
             Label {
                 text: qsTr("Symulacje")
                 font.pixelSize: 16
