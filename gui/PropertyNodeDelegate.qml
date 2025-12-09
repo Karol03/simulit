@@ -45,7 +45,7 @@ Item {
             background: Rectangle {
                 border.width: 0
                 radius: 0
-                color: panelColor
+                color: Qt.darker(panelColor, 1.1)
             }
 
             ColumnLayout {
@@ -53,7 +53,7 @@ Item {
                 anchors.right: parent.right
                 spacing: 6
 
-                Item { height: 12 }
+                Item { height: 6 }
 
                 Label {
                     text: prop?.label ?? ""

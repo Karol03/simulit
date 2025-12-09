@@ -12,6 +12,7 @@ Item {
         title: "Błąd"
         modal: true
         standardButtons: Dialog.Ok
+        anchors.centerIn: parent
 
         Text {
             id: errorText
@@ -35,8 +36,8 @@ Item {
         state: root.controller.state
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.rightMargin: 300
-        anchors.bottomMargin: 32
+        anchors.rightMargin: 330
+        anchors.bottomMargin: 62
         visible: controller ? 1 : 0
 
         Behavior on opacity {
@@ -48,8 +49,8 @@ Item {
         id: assistButton
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.rightMargin: 256
-        anchors.bottomMargin: 12
+        anchors.rightMargin: 286
+        anchors.bottomMargin: 42
         visible : root.controller &&
                   (root.controller.state === ControllerState.Running ||
                    root.controller.state === ControllerState.Paused)

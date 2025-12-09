@@ -15,6 +15,8 @@ class SimulationHandler : public QObject
     Q_PROPERTY(QObjectList properties READ properties NOTIFY propertiesChanged)
     Q_PROPERTY(QObjectList statistics READ statistics NOTIFY statisticsChanged)
     Q_PROPERTY(QObject* runtimeController READ runtimeController NOTIFY runtimeControllerChanged)
+    Q_PROPERTY(QString name READ name NOTIFY nameChanged)
+    Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
 
 public:
     SimulationHandler(QObject* parent = nullptr);
@@ -27,6 +29,8 @@ public:
     QObjectList properties() const;
     QObjectList statistics() const;
     QObject* runtimeController();
+    QString name() const;
+    QString description() const;
 
 signals:
     void errorOccurred(const QString &message);
@@ -35,10 +39,14 @@ signals:
     void propertiesChanged();
     void statisticsChanged();
     void runtimeControllerChanged();
+    void nameChanged();
+    void descriptionChanged();
 
 private:
     QString m_loadedSimulationName;
     providers::IProvider* m_simulationsProvider;
     workers::Pool m_workers;
     workers::IWorkerHandler* m_selectedWorker;
+    QString m_activeSimulationName;
+    QString m_activeSimulationDescription;
 };

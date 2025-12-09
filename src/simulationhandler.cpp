@@ -32,6 +32,8 @@ void SimulationHandler::select(QString name)
     auto simulationDll = qobject_cast<api::ISimulationDLL*>(simulationPlugin);
     if (!simulationDll)
         return;
+    m_activeSimulationName = simulationDll->name();
+    m_activeSimulationDescription = simulationDll->description();
 
     if (m_workers.exists(name))
     {
@@ -46,6 +48,8 @@ void SimulationHandler::select(QString name)
     emit workerPropertiesChanged();
     emit statisticsChanged();
     emit runtimeControllerChanged();
+    emit nameChanged();
+    emit descriptionChanged();
 }
 
 QObjectList SimulationHandler::simulations() const
@@ -81,4 +85,14 @@ QObject* SimulationHandler::runtimeController()
     if (m_selectedWorker && m_selectedWorker->controller())
         return m_selectedWorker->controller();
     return {};
+}
+
+QString SimulationHandler::name() const
+{
+    return m_activeSimulationName;
+}
+
+QString SimulationHandler::description() const
+{
+    return m_activeSimulationDescription;
 }

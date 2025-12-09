@@ -98,7 +98,7 @@ public slots:
         }
         catch (std::exception& e)
         {
-            emit error(QString("An exception occured during the simulation setup:\n$1").arg(e.what()));
+            emit error(QString("An exception occured during the simulation setup:\n%1").arg(e.what()));
         }
     };
     void _run(NumberGenerator* generator)
@@ -110,7 +110,7 @@ public slots:
         }
         catch (std::exception& e)
         {
-            emit error(QString("An exception occured during the simulation run:\n$1").arg(e.what()));
+            emit error(QString("An exception occured during the simulation run:\n%1").arg(e.what()));
         }
     }
     void _teardown()
@@ -122,7 +122,7 @@ public slots:
         }
         catch (std::exception& e)
         {
-            emit error(QString("An exception occured during the simulation teardown:\n$1").arg(e.what()));
+            emit error(QString("An exception occured during the simulation teardown:\n%1").arg(e.what()));
         }
     }
 

@@ -20,9 +20,9 @@ SimpleController::SimpleController(api::ISimulationDLL* plugin,
     , m_isBusy{false}
 {
     m_properties = api::var("Przebieg", this,
-                            api::var<int>("Liczba przebiegów", "Liczba powtórzeń symulacji, im większa, tym dokładniejsze wyniki <1, 10'000'000>", 1, [](const int& value) { return 0 < value && value <= 10'000'000; }),
+                            api::var<int>("Liczba przebiegów", "Liczba powtórzeń symulacji, im większa, tym dokładniejsze wyniki <1, 1'000'000>", 100, [](const int& value) { return 0 < value && value <= 1'000'000; }),
                             api::var<int>("Ziarno", "Ustalona wartość inicjalizująca generator losowy w celu powtarzalności wyników (random seed). Ustaw 0 dla losowego ziarna", 0, [](const int& value) { return true; }),
-                            api::var<int>("Opóźnienie", "Opóźnienie pomiędzy kolejnymi iteracjami (w milisekundach <0-3000>)", 20, [](const int& value) { return 0 <= value && value <= 3000; }));
+                            api::var<int>("Opóźnienie", "Opóźnienie pomiędzy kolejnymi iteracjami (w milisekundach <0-3000>)", 10, [](const int& value) { return 0 <= value && value <= 3000; }));
 
     prepareSimulationThread();
 }
