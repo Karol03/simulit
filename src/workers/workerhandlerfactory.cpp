@@ -26,9 +26,11 @@ IWorkerHandler* WorkerHandlerFactory::createFrom(api::ISimulationDLL* plugin)
     {
         if (auto worker = factory(simulation, plugin))
         {
+            delete simulation;
             return worker;
         }
     }
+    delete simulation;
     return nullptr;
 }
 

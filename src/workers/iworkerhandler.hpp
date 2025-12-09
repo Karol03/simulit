@@ -23,7 +23,7 @@ class IWorkerHandler : public QObject
 public:
     using QObject::QObject;
 
-    virtual providers::IProvider* ownProperties() = 0;
+    virtual providers::IProvider* controllerProperties() = 0;
     virtual providers::IProvider* simulationProperties() = 0;
     virtual providers::IProvider* statistics() = 0;
     virtual controllers::IController* controller() = 0;

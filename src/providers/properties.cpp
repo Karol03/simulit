@@ -6,11 +6,11 @@
 namespace providers
 {
 
-Properties::Properties(api::ISimulationDLL& simulation, QObject* parent)
+Properties::Properties(api::Variables properties, QObject* parent)
     : IProvider(parent)
 {
-    if (simulation.properties())
-        createAdapters(simulation.properties());
+    if (properties)
+        createAdapters(properties);
 }
 
 QObjectList Properties::obtain()

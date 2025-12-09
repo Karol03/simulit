@@ -6,12 +6,12 @@ import QtQuick.Effects
 Button {
     id: control
 
-    property var controller
+    property var state
 
-    property bool readyOrPaused: controller.state === SimpleController.Ready ||
-                                 controller.state === SimpleController.Paused
-    property bool running: controller.state === SimpleController.Running
-    property bool stopped: controller.state === SimpleController.Stopped
+    property bool readyOrPaused: state === ControllerState.Ready ||
+                                 state === ControllerState.Paused
+    property bool running: state === ControllerState.Running
+    property bool stopped: state === ControllerState.Stopped
     property color readyOrPausedColor: "#2ecc71"
     property color runningColor: "#3498db"
     property color stoppedColor: "#e68522"
@@ -170,15 +170,15 @@ Button {
         if (!controller)
             return;
 
-        switch (controller.state) {
-        case SimpleController.Ready:
-        case SimpleController.Paused:
+        switch (state) {
+        case ControllerState.Ready:
+        case ControllerState.Paused:
             controller.start();
             break;
-        case SimpleController.Running:
+        case ControllerState.Running:
             controller.pause();
             break;
-        case SimpleController.Stopped:
+        case ControllerState.Stopped:
             controller.restart();
             break;
         }

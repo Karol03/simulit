@@ -31,18 +31,34 @@ signals:
     /**
      * @brief progress
      * @param changes
-     * progress is automatically updated at the end of the iteration
+     * statistics are automatically update
+     * at the end of the run function
      * if you need to update it more frequently just call
      * emit progress(stats)
      */
     void progress(const VariableMap::Snapshot& changes);
 
+    // --- Do not use signals below in your code --
     /**
-     * @brief finished
+     * @brief _setupFinished
+     * emitted at the end of setup stage,
+     * do not use it in your code
+     */
+    void _setupFinished(const VariableMap::Snapshot& clearStats);
+
+    /**
+     * @brief _runFinished
+     * emitted at the end of the run,
+     * do not use it in your code
+     */
+    void _runFinished(const VariableMap::Snapshot& changes);
+
+    /**
+     * @brief _teardownFinished
      * emitted at the end of simulation,
      * do not use it in your code
      */
-    void finished();
+    void _teardownFinished();
 };
 
 
@@ -71,22 +87,46 @@ public:
     virtual void teardown() = 0;
 
 public slots:
-    void __setup(Variables properties, Variables statistics)
+    void _setup(Variables properties, Variables statistics)
     {
-        stats.reinitialize(statistics);
-        emit progress(stats);
-        setup(VariableMap(properties).watch());
+        try
+        {
+            stats.reinitialize(statistics);
+            stats.reset();
+            setup(VariableMap(properties).watch());
+            emit _setupFinished(stats);
+        }
+        catch (std::exception& e)
+        {
+            emit error(QString("An exception occured during the simulation setup:\n$1").arg(e.what()));
+        }
     };
-    void __start(NumberGenerator& generator)
+    void _run(NumberGenerator* generator)
     {
-        run(generator);
-        emit progress(stats);
+        try
+        {
+            run(*generator);
+            emit _runFinished(stats);
+        }
+        catch (std::exception& e)
+        {
+            emit error(QString("An exception occured during the simulation run:\n$1").arg(e.what()));
+        }
     }
-    void __teardown()
+    void _teardown()
     {
-        teardown();
-        emit finished();
+        try
+        {
+            teardown();
+            emit _teardownFinished();
+        }
+        catch (std::exception& e)
+        {
+            emit error(QString("An exception occured during the simulation teardown:\n$1").arg(e.what()));
+        }
     }
+
+signals:
 
 protected:
     VariableMap stats;

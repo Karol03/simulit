@@ -6,12 +6,11 @@
 namespace providers
 {
 
-Statistics::Statistics(api::ISimulationDLL& simulation, QObject* parent)
+Statistics::Statistics(api::Variables statistics, QObject* parent)
     : IProvider(parent)
 {
-    if (!simulation.statistics())
-        return;
-    createAdapters(simulation.statistics());
+    if (statistics)
+        createAdapters(statistics);
 }
 
 QObjectList Statistics::obtain()
@@ -46,13 +45,21 @@ void Statistics::createAdapters(api::VariableMap statistics)
 void Statistics::updateFromMap(const QVariantMap& update)
 {
     m_watchList->update(update);
-    emit updated();
+    for (auto& adapter : m_adapters)
+    {
+        dynamic_cast<adapters::Statistic*>(adapter)->updated();
+    }
+    emit changed();
 }
 
 void Statistics::updateWatched(const api::VariableMapSnapshot& update)
 {
     m_watchList->update(update);
-    emit updated();
+    for (auto& adapter : m_adapters)
+    {
+        dynamic_cast<adapters::Statistic*>(adapter)->updated();
+    }
+    emit changed();
 }
 
 }  // namespace providers

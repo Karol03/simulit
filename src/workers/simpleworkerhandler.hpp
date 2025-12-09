@@ -4,6 +4,8 @@
 
 #include "iworkerhandler.hpp"
 #include "api/simulation.hpp"
+#include "providers/statistics.hpp"
+#include "controllers/simplecontroller.hpp"
 
 
 namespace workers
@@ -14,23 +16,19 @@ class SimpleWorkerHandler : public IWorkerHandler
     Q_OBJECT
 
 public:
-    SimpleWorkerHandler(api::ISimulation* simulation,
-                        api::ISimulationDLL* plugin,
+    SimpleWorkerHandler(api::ISimulationDLL* plugin,
                         QObject* parent = nullptr);
-    ~SimpleWorkerHandler();
 
-    providers::IProvider* ownProperties() override;
+    providers::IProvider* controllerProperties() override;
     providers::IProvider* simulationProperties() override;
     providers::IProvider* statistics() override;
     controllers::IController* controller() override;
 
 private:
-    api::ISimulation* m_simulation;
-    providers::IProvider* m_ownProperties;
-    providers::IProvider* m_simulationProperties;
-    providers::IProvider* m_statistics;
-    controllers::IController* m_controller;
-    QThread m_simulationThread;
+    controllers::SimpleController m_controller;
+    providers::Statistics m_statistics;
+    providers::IProvider* m_properties;
+    providers::IProvider* m_controllerProperties;
 };
 
 }  // namespace workers

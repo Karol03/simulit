@@ -29,7 +29,7 @@ private:
     void registerHandler() {
         m_factoryMethods.emplace_back(
             [](api::ISimulation* simulation, api::ISimulationDLL* plugin) -> HandlerT* {
-                return dynamic_cast<SimulationT*>(simulation) ? new HandlerT(simulation, plugin) : nullptr;
+                return dynamic_cast<SimulationT*>(simulation) ? new HandlerT(plugin) : nullptr;
             });
     }
 

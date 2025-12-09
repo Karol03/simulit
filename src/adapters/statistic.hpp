@@ -50,7 +50,7 @@ public:
 
     void setValue(const QVariant&)
     {
-        Q_ASSERT("Setting stats from code not available");
+        Q_ASSERT("Setting stats from code is invalid");
     }
 
     QObjectList children() const
@@ -69,6 +69,11 @@ public:
     {
         Q_ASSERT("Calling raw on adapters::Statistics is invalid");
         return nullptr;
+    }
+
+    void updated()
+    {
+        emit changed(value());
     }
 
 signals:

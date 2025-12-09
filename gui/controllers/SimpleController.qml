@@ -7,9 +7,32 @@ Item {
 
     property var controller
 
+    Dialog {
+        id: errorDialog
+        title: "Błąd"
+        modal: true
+        standardButtons: Dialog.Ok
+
+        Text {
+            id: errorText
+            text: ""
+            wrapMode: Text.WordWrap
+            padding: 12
+        }
+    }
+
+    Connections {
+        target: root.controller
+
+        function onError(message) {
+            errorText.text = message
+            errorDialog.open()
+        }
+    }
+
     FocalButton {
         id: focalButton
-        controller: root.controller
+        state: root.controller.state
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.rightMargin: 300
@@ -28,8 +51,8 @@ Item {
         anchors.rightMargin: 256
         anchors.bottomMargin: 12
         visible : root.controller &&
-                  (root.controller.state === SimpleController.Running ||
-                   root.controller.state === SimpleController.Paused)
+                  (root.controller.state === ControllerState.Running ||
+                   root.controller.state === ControllerState.Paused)
         opacity: visible ? 1 : 0
 
         Behavior on opacity {

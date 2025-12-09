@@ -47,8 +47,10 @@ Item {
             font.family: "Source Sans 3"
             font.pixelSize: 11
 
-            Layout.alignment: Qt.AlignHCenter
-            text: stat?.value ?? ""
+            Layout.alignment: Qt.AlignRight
+            text: typeof stat?.value === "number" && Math.floor(stat.value) !== stat.value
+                  ? stat.value.toFixed(3)
+                  : stat?.value
         }
     }
 }

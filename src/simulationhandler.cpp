@@ -41,6 +41,7 @@ void SimulationHandler::select(QString name)
     {
         m_selectedWorker = m_workers.create(name, simulationDll);
     }
+
     emit propertiesChanged();
     emit workerPropertiesChanged();
     emit statisticsChanged();
@@ -56,8 +57,8 @@ QObjectList SimulationHandler::simulations() const
 
 QObjectList SimulationHandler::workerProperties() const
 {
-    if (m_selectedWorker && m_selectedWorker->ownProperties())
-        return m_selectedWorker->ownProperties()->obtain();
+    if (m_selectedWorker && m_selectedWorker->controllerProperties())
+        return m_selectedWorker->controllerProperties()->obtain();
     return {};
 }
 

@@ -31,8 +31,6 @@ qt_add_executable(appsimulit
     src/providers/simulations.cpp
     src/providers/statistics.hpp
     src/providers/statistics.cpp
-    src/providers/workerproperties/simpleworker.hpp
-    src/providers/workerproperties/simpleworker.cpp
 
     src/loaders/iloader.hpp
     src/loaders/dllloader.hpp
@@ -44,6 +42,7 @@ qt_add_executable(appsimulit
     src/adapters/simulationrecord.hpp
 
     src/controllers/icontroller.hpp
+    src/controllers/controllerstate.hpp
     src/controllers/simplecontroller.hpp
     src/controllers/simplecontroller.cpp
 
@@ -60,6 +59,8 @@ qt_add_executable(appsimulit
     src/tools/randomnumbergenerator.hpp
     src/tools/determinenumbergenerator.cpp
     src/tools/determinenumbergenerator.hpp
+    src/tools/numbergeneratorfactory.cpp
+    src/tools/numbergeneratorfactory.hpp
 
     resources.qrc
 )
@@ -77,7 +78,7 @@ qt_add_qml_module(appsimulit
         gui/controllers/FocalButton.qml
         gui/controllers/AssistButton.qml
     SOURCES
-        src/controllers/simplecontroller.hpp
+        src/controllers/controllerstate.hpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

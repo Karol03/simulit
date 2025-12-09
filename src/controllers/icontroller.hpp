@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QUrl>
 
+#include "api/variable.hpp"
+
 
 namespace controllers
 {
@@ -22,6 +24,7 @@ public:
     IController& operator=(IController&&) = delete;
 
     virtual QUrl uiSource() const = 0;
+    virtual api::Variables properties() = 0;
 };
 
 }  // namespace controllers

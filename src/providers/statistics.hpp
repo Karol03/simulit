@@ -4,7 +4,6 @@
 #include <optional>
 
 #include "iprovider.hpp"
-#include "api/simulation.hpp"
 #include "api/variable.hpp"
 
 
@@ -16,7 +15,7 @@ class Statistics : public IProvider
     Q_OBJECT
 
 public:
-    Statistics(api::ISimulationDLL& simulation, QObject* parent);
+    Statistics(api::Variables statistics, QObject* parent = nullptr);
 
     QObjectList obtain() override;
     adapters::IAdapter* select(const QString& name) override;
@@ -24,9 +23,6 @@ public:
 public slots:
     void updateFromMap(const QVariantMap& update) override;
     void updateWatched(const api::VariableMapSnapshot& update);
-
-signals:
-    void updated();
 
 private:
     void createAdapters(api::VariableMap statistics);

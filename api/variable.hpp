@@ -249,29 +249,19 @@ public:
     {
         friend class VariableMap;
 
-        Snapshot(QList<QVariant> data)
-            : m_datas{std::move(data)}
-        {}
-    public:
-        Snapshot(const Snapshot& snapshot)
-            : m_datas{snapshot.m_datas}
-        {}
-        Snapshot& operator=(const Snapshot& snapshot)
+        explicit Snapshot(QVariantList data)
         {
-            m_datas = snapshot.m_datas;
-            return *this;
-        }
-        Snapshot(Snapshot&& snapshot)
-            : m_datas{std::move(snapshot.m_datas)}
-        {}
-        Snapshot& operator=(Snapshot&& snapshot)
-        {
-            std::swap(m_datas, snapshot.m_datas);
-            return *this;
+            std::swap(m_datas, data);
         }
 
+    public:
+        Snapshot(const Snapshot&) = default;
+        Snapshot& operator=(const Snapshot&) = default;
+        Snapshot(Snapshot&&) noexcept = default;
+        Snapshot& operator=(Snapshot&&) noexcept = default;
+
     private:
-        QList<QVariant> m_datas;
+        QVariantList m_datas;
     };
 
     class WatchList
@@ -430,6 +420,14 @@ public:
         return *reinterpret_cast<T*>(m_mapByNames[name]->dataPointer());
     }
 
+    void reset()
+    {
+        for (auto& var : m_variables)
+        {
+            var->reset();
+        }
+    }
+
     std::size_t size() const
     {
         return m_variables.size();
@@ -456,7 +454,7 @@ public:
 
     inline Snapshot snapshot() const
     {
-        auto result = QList<QVariant>{};
+        auto result = QVariantList{};
         result.reserve(m_variables.size());
         for (const auto& variable : m_variables)
         {
