@@ -50,7 +50,7 @@ Item {
             Layout.alignment: Qt.AlignRight
             text: typeof stat?.value === "number" && Math.floor(stat.value) !== stat.value
                   ? stat.value.toFixed(3)
-                  : stat?.value
+                  : (stat?.value ?? "")
         }
     }
 }

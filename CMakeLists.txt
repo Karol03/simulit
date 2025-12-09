@@ -12,14 +12,11 @@ include_directories(src)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
+add_subdirectory(api)
+add_subdirectory(simulations)
+
 qt_add_executable(appsimulit
     main.cpp
-    api/simulation.hpp
-
-
-    api/tools.hpp
-    api/utils.hpp
-    api/variable.hpp
 
     src/simulationhandler.hpp
     src/simulationhandler.cpp
@@ -99,7 +96,10 @@ target_include_directories(appsimulit
 )
 
 target_link_libraries(appsimulit
-    PRIVATE Qt6::Quick Qt6::QuickControls2
+    PRIVATE
+        Qt6::Quick
+        Qt6::QuickControls2
+        ${CMAKE_PROJECT_NAME}-api
 )
 
 include(GNUInstallDirs)

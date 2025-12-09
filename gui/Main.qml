@@ -70,6 +70,7 @@ ApplicationWindow {
         Rectangle {
             id: simulationInfoCard
             width: Math.min(parent.width * 0.46, 480)
+            height: infoColumn.implicitHeight + 20
             radius: 8
             color: Qt.darker(panelColor, 1.05)
             border.width: 1
@@ -78,8 +79,16 @@ ApplicationWindow {
             anchors.top: parent.top
             anchors.topMargin: 20
             visible: simulationSelected && simulationHandler
+            opacity: visible ? 1 : 0
+            y: visible ? anchors.topMargin : anchors.topMargin + 20   // lekki slide
 
-            height: infoColumn.implicitHeight + 20
+            Behavior on opacity {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
+
+            Behavior on y {
+                NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
+            }
 
             ColumnLayout {
                 id: infoColumn
@@ -124,7 +133,7 @@ ApplicationWindow {
 
             Behavior on x {
                 NumberAnimation {
-                    duration: 140
+                    duration: 180
                     easing.type: Easing.InOutQuad
                 }
             }

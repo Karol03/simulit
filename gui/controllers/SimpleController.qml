@@ -33,15 +33,21 @@ Item {
 
     FocalButton {
         id: focalButton
-        state: root.controller.state
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.rightMargin: 330
         anchors.bottomMargin: 62
-        visible: controller ? 1 : 0
+        visible: controller !== null
 
         Behavior on opacity {
             NumberAnimation { duration: 200 }
+        }
+
+        Binding {
+            target: focalButton
+            property: "state"
+            value: root.controller ? root.controller.state : undefined
+            when: root.controller !== null
         }
     }
 
