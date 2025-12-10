@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Gui)
 
 include_directories(src)
 
@@ -99,6 +99,7 @@ target_link_libraries(appsimulit
     PRIVATE
         Qt6::Quick
         Qt6::QuickControls2
+        Qt6::Gui
         ${CMAKE_PROJECT_NAME}-api
 )
 

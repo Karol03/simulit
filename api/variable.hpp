@@ -20,6 +20,7 @@ public:
     using QObject::QObject;
 
     virtual const QString& name() const = 0;
+    virtual QString fullName() const = 0;
     virtual const QString& description() const = 0;
     virtual QMetaType type() const = 0;
     virtual bool set(const QVariant& value) = 0;
@@ -50,6 +51,16 @@ public:
     // because of QObject::children, cannot name the method children()
     virtual QList<IHierarchicalNamedVariable*> inner() = 0;
 
+    QString fullName() const override
+    {
+        if (this->parent())
+        {
+            if (auto variableParent = dynamic_cast<INamedVariable*>(this->parent()))
+                return QString("%1:%2").arg(variableParent->fullName(), name());
+        }
+        return name();
+    }
+
     template <typename Container, typename Filter>
     void preorderTraversalSquash(Container& result, Filter&& filter)
     {
@@ -64,9 +75,7 @@ public:
 protected:
     void assign(int& newId)
     {
-        if (m_id != 0)
-            throw std::runtime_error{std::format("Variable (name: {}) already initialized with id {}", this->name().toStdString(), m_id)};
-        m_id = ++newId;
+        m_id = newId++;
         for (const auto& child : this->inner())
         {
             child->assign(newId);
@@ -83,16 +92,30 @@ class IVariable : public common::IHierarchicalNamedVariable
     Q_OBJECT
 
 public:
-    using common::IHierarchicalNamedVariable::IHierarchicalNamedVariable;
+    IVariable(QString name,
+              QString description,
+              QObject* parent = nullptr)
+        : common::IHierarchicalNamedVariable(parent)
+        , m_name{std::move(name)}
+        , m_description{std::move(description)}
+    {
+        if (name.contains(':'))
+            throw std::logic_error{QString("Invalid variable name '%1', variable must not contain ':'").arg(name).toStdString()};
+    }
 
-    virtual const QString& name() const override = 0;
-    virtual const QString& description() const override = 0;
+    const QString& name() const override { return m_name; }
+    const QString& description() const override { return m_description; }
+
     virtual QMetaType type() const override = 0;
     virtual bool set(const QVariant& value) override = 0;
     virtual void reset() override = 0;
     virtual QVariant get() const override = 0;
     virtual void* dataPointer() const override = 0;
     virtual QList<IHierarchicalNamedVariable*> inner() override = 0;
+
+private:
+    const QString m_name;
+    const QString m_description;
 };
 
 
@@ -104,22 +127,10 @@ public:
              QString description,
              T defaultValue = T{},
              QObject* parent = nullptr)
-        : IVariable(parent)
-        , m_name{std::move(name)}
-        , m_description{std::move(description)}
+        : IVariable(std::move(name), std::move(description), parent)
         , m_data{defaultValue}
         , m_defaultValue{defaultValue}
     {}
-
-    const QString& name() const override
-    {
-        return m_name;
-    }
-
-    const QString& description() const override
-    {
-        return m_description;
-    }
 
     QMetaType type() const override
     {
@@ -157,8 +168,6 @@ protected:
     T m_data;
 
 private:
-    const QString m_name;
-    const QString m_description;
     T m_defaultValue;
 };
 
@@ -176,7 +185,7 @@ public:
                      Filter filter = [](const T&) { return true; },
                      QObject* parent = nullptr)
         : Variable<T>(name, description, defaultValue, parent)
-        , m_filter{std::move(filter)}
+        , m_filter{filter}
     {}
 
     bool set(const QVariant& value) override
@@ -205,9 +214,7 @@ class VariableGroup : public IVariable
 public:
     template <class... Properties>
     VariableGroup(QString name, QObject* parent, Properties&&... properties)
-        : IVariable(parent)
-        , m_name{std::move(name)}
-        , m_description{}
+        : IVariable(std::move(name), "", parent)
     {
         m_properties.reserve(sizeof...(Properties));
         (m_properties.emplace_back(
@@ -215,13 +222,13 @@ public:
              ), ...);
         if (!parent)
         {
+            QSet<QString> uniquenessFullnameCheck;
             int id = 0;
             assign(id);
+
         }
     }
 
-    const QString& name() const final { return m_name; }
-    const QString& description() const final { return m_description; }
     QMetaType type() const override { return QMetaType(QMetaType::Nullptr); }
     bool set(const QVariant& value) final { return false; }
     QVariant get() const final { return QVariant{}; }
@@ -236,8 +243,6 @@ public:
     QList<IHierarchicalNamedVariable*> inner() override { return m_properties; }
 
 private:
-    const QString m_name;
-    const QString m_description;
     QList<IHierarchicalNamedVariable*> m_properties;
 };
 
@@ -271,34 +276,34 @@ public:
         WatchList(const std::vector<IHierarchicalNamedVariable*>& variables)
         {
             m_datas.reserve(variables.size());
-            m_names.reserve(variables.size());
+            m_fullNames.reserve(variables.size());
             for (int i = 0; i < variables.size(); ++i)
             {
                 m_datas.append(variables[i]->get());
-                m_names.append(variables[i]->name());
+                m_fullNames.append(variables[i]->fullName());
             }
         }
 
     public:
         WatchList(const WatchList& watchlist)
             : m_datas{watchlist.m_datas}
-            , m_names{watchlist.m_names}
+            , m_fullNames{watchlist.m_fullNames}
         {}
         WatchList& operator=(const WatchList& watchlist)
         {
             m_datas = watchlist.m_datas;
-            m_names = watchlist.m_names;
+            m_fullNames = watchlist.m_fullNames;
             return *this;
         }
         WatchList(WatchList&& watchlist)
         {
             std::swap(m_datas, watchlist.m_datas);
-            std::swap(m_names, watchlist.m_names);
+            std::swap(m_fullNames, watchlist.m_fullNames);
         }
         WatchList& operator=(WatchList&& watchlist)
         {
             std::swap(m_datas, watchlist.m_datas);
-            std::swap(m_names, watchlist.m_names);
+            std::swap(m_fullNames, watchlist.m_fullNames);
             return *this;
         }
         void update(Snapshot snapshot)
@@ -309,13 +314,9 @@ public:
         {
             for (const auto& [name, value] : map.asKeyValueRange())
             {
-                for (int i = 0; i < m_names.size(); ++i)
+                if (auto pos = find(name); pos != -1)
                 {
-                    if (m_names[i] == name)
-                    {
-                        m_datas[i] = value;
-                        break;
-                    }
+                    m_datas[pos] = value;
                 }
             }
         }
@@ -325,14 +326,7 @@ public:
         }
         bool contains(const QString& name) const
         {
-            for (int i = 0; i < m_names.size(); ++i)
-            {
-                if (m_names[i] == name)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return find(name) != -1;
         }
         bool contains(const int& id) const
         {
@@ -350,13 +344,8 @@ public:
         }
         QVariant operator[](const QString& name) const
         {
-            for (int i = 0; i < m_names.size(); ++i)
-            {
-                if (m_names[i] == name)
-                {
-                    return m_datas[i];
-                }
-            }
+            if (auto pos = find(name); pos != -1)
+                return m_datas[pos];
             throw std::runtime_error{std::format("Variable (name: {}) not on the watch list", name.toStdString())};
         }
         QVariant operator[](const int& id) const
@@ -366,8 +355,21 @@ public:
             throw std::runtime_error{std::format("Variable (id: {}) not on the watch list", id)};
         }
     private:
+        int find(const QString& name) const
+        {
+            auto lastSubname = ':' + name;
+            for (int i = 0; i < m_fullNames.size(); ++i)
+            {
+                if (m_fullNames[i] == name || m_fullNames[i].endsWith(lastSubname))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+    private:
         QVariantList m_datas;
-        QStringList m_names;
+        QStringList m_fullNames;
     };
 
 public:
@@ -395,7 +397,7 @@ public:
     {
         if (!root)
         {
-            Q_ASSERT("Cannot initialize VariableMap with no root");
+            Q_ASSERT_X(false, "VariableMap::reinitialize", "Cannot initialize VariableMap with no root");
             return;
         }
         const auto takeAll = [](const auto&) { return true; };
@@ -408,16 +410,13 @@ public:
     template <typename T>
     T& ref(const QString& name)
     {
-        auto it = m_mapByNames.find(name);
-        if (it == m_mapByNames.end())
-            throw std::runtime_error{std::format("Object (name: {}) not exists in VariableMap", name.toStdString())};
-        auto* entry = it.value();
-        if (!entry)
+        auto* variable = named(name);
+        if (!variable)
             throw std::runtime_error{std::format("Object (name: {}) from VariableMap cannot be dereferenced", name.toStdString())};
         auto expectedType = QMetaType::fromType<T>();
-        if (entry->type() != expectedType)
-            throw std::runtime_error{std::format("Object '(name: {}, type: {})' does not match expected type {} in VariableMap", name.toStdString(), entry->type().name(), expectedType.name())};
-        return *reinterpret_cast<T*>(m_mapByNames[name]->dataPointer());
+        if (variable->type() != expectedType)
+            throw std::runtime_error{std::format("Object '(name: {}, type: {})' does not match expected type {} in VariableMap", name.toStdString(), variable->type().name(), expectedType.name())};
+        return *reinterpret_cast<T*>(variable->dataPointer());
     }
 
     void reset()
@@ -435,13 +434,23 @@ public:
 
     IHierarchicalNamedVariable* named(const QString& name)
     {
-        if (m_mapByNames.contains(name))
-            return m_mapByNames[name];
+        auto it = m_mapByNames.find(name);
+        if (it != m_mapByNames.end())
+            return it.value();
+        auto lastSubname = ':' + name;
+        for (const auto& [varName, var] : m_mapByNames.asKeyValueRange())
+        {
+            if (varName.endsWith(lastSubname))
+            {
+                return var;
+            }
+        }
         throw std::runtime_error{std::format("Object (name: {}) not exists in VariableMap", name.toStdString())};
     }
 
     IHierarchicalNamedVariable* number(const int& id)
     {
+        // id is assigned after variables tree squash, so position == id
         if (id < m_variables.size())
             return m_variables[id];
         throw std::runtime_error{std::format("Object (id: {}) not exists in VariableMap", id)};
@@ -471,9 +480,12 @@ public:
 private:
     void fillTheMap()
     {
-        for (const auto& var : m_variables)
+        for (int i = 0; i < m_variables.size(); ++i)
         {
-            m_mapByNames[var->name()] = var;
+            const auto& var = m_variables[i];
+            m_mapByNames[var->fullName()] = var;
+            Q_ASSERT_X(i == var->id(), "api::VariableMap::fillTheMap()",
+                       "Variable position after tree squash MUST correspond to variable id()");
         }
     }
 
@@ -499,7 +511,14 @@ concept VariableTypes = (VariableType<T> && ...);
 template <typename T>
 inline auto var(QString name, QString description, T defaultValue = T{}, QObject* parent = nullptr)
 {
-    return new ::api::common::Variable<T>(std::move(name), std::move(description), std::move(defaultValue), parent);
+    using DecayedT = std::decay_t<T>;
+    if constexpr (std::is_same_v<DecayedT, const char*> ||
+                  std::is_same_v<DecayedT, char*> ||
+                  std::is_same_v<DecayedT, std::string> ||
+                  std::is_same_v<DecayedT, QString>)
+        return new ::api::common::Variable<QString>(std::move(name), std::move(description), std::move(defaultValue), parent);
+    else
+        return new ::api::common::Variable<T>(std::move(name), std::move(description), std::move(defaultValue), parent);
 }
 
 template <typename T, typename Filter>
@@ -509,11 +528,22 @@ inline auto var(QString name,
                 Filter&& filter,
                 QObject* parent = nullptr)
 {
-    return new ::api::common::VariableFiltered<T>(std::move(name),
-                                                  std::move(description),
-                                                  std::move(defaultValue),
-                                                  std::forward<Filter>(filter),
-                                                  parent);
+    using DecayedT = std::decay_t<T>;
+    if constexpr (std::is_same_v<DecayedT, const char*> ||
+                  std::is_same_v<DecayedT, char*> ||
+                  std::is_same_v<DecayedT, std::string> ||
+                  std::is_same_v<DecayedT, QString>)
+        return new ::api::common::VariableFiltered<QString>(std::move(name),
+                                                            std::move(description),
+                                                            std::move(defaultValue),
+                                                            std::forward<Filter>(filter),
+                                                            parent);
+    else
+        return new ::api::common::VariableFiltered<T>(std::move(name),
+                                                      std::move(description),
+                                                      std::move(defaultValue),
+                                                      std::forward<Filter>(filter),
+                                                      parent);
 }
 
 template <VariableTypes... Properties>

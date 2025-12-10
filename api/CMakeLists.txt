@@ -8,6 +8,7 @@ qt_add_library(${CMAKE_PROJECT_NAME}-api STATIC
 target_link_libraries(${CMAKE_PROJECT_NAME}-api
     PUBLIC
         Qt6::Core
+        Qt6::Gui
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME}-api

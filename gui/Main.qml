@@ -82,12 +82,36 @@ ApplicationWindow {
             opacity: visible ? 1 : 0
             y: visible ? anchors.topMargin : anchors.topMargin + 20
 
+            property bool descriptionExpanded: false
+
             Behavior on opacity {
                 NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
             }
 
             Behavior on y {
                 NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
+            }
+
+            ToolButton {
+                id: toggleDescButton
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.topMargin: 6
+                anchors.rightMargin: 6
+
+                // mała strzałka pasująca do carda
+                text: simulationInfoCard.descriptionExpanded ? "\u25B2" : "\u25BC" // ▲ / ▼
+                font.pixelSize: 10
+                padding: 4
+                background: Rectangle {
+                    radius: 6
+                    color: Qt.rgba(0, 0, 0, 0.2)
+                }
+
+                onClicked: simulationInfoCard.descriptionExpanded = !simulationInfoCard.descriptionExpanded
+                ToolTip.visible: hovered
+                ToolTip.text: simulationInfoCard.descriptionExpanded ?
+                                  qsTr("Zwiń") : qsTr("Rozwiń opis")
             }
 
             ColumnLayout {
@@ -99,6 +123,7 @@ ApplicationWindow {
                 Label {
                     text: simulationHandler && simulationHandler.name !== "" ?
                               simulationHandler.name : qsTr("Brak wybranej symulacji")
+                    font.family: "Source Sans 3"
                     font.pixelSize: 18
                     font.bold: true
                     Layout.fillWidth: true
@@ -109,14 +134,18 @@ ApplicationWindow {
                 Label {
                     text: simulationHandler && simulationHandler.description !== "" ?
                               simulationHandler.description : qsTr("Wybierz symulację z listy po lewej, aby zobaczyć jej opis.")
+                    font.family: "Source Sans 3"
                     font.pixelSize: 13
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
-                    maximumLineCount: 6
+
+                    // tu magia: mało linii, gdy zwinięte; dużo, gdy rozwinięte
+                    maximumLineCount: simulationInfoCard.descriptionExpanded ? 18 : 1
                     elide: Text.ElideRight
                 }
             }
         }
+
 
         // --- Simulation properties panel on the right--
         Rectangle {
@@ -207,6 +236,7 @@ ApplicationWindow {
 
                     Label {
                         text: qsTr("Statystyki")
+                        font.family: "Source Sans 3"
                         font.pixelSize: 15
                         font.bold: true
                         Layout.fillWidth: true
@@ -300,6 +330,7 @@ ApplicationWindow {
 
             Label {
                 text: qsTr("Symulacje")
+                font.family: "Source Sans 3"
                 font.pixelSize: 16
                 font.bold: true
                 Layout.fillWidth: true
@@ -339,6 +370,18 @@ ApplicationWindow {
                         }
                     }
                 }
+            }
+
+
+            Text {
+                horizontalAlignment: Text.AlignHCenter
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 14
+                font.family: "Source Sans 3"
+                font.pixelSize: 10
+                color: Qt.lighter(panelColor, 1.4)
+                text: "Created by Karol\ngithub.com/Karol03"
             }
         }
     }

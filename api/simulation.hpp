@@ -6,8 +6,8 @@
  *
  * To implement a simulation plugin:
  * 1. Derive your plugin class from ISimulationDLL and override:
- *      - name()        : QString           - returns the name of your simulation
- *      - description() : QString           - returns a short description
+ *      - name()        : QString           - returns the short name of your simulation, max. ~20 chars
+ *      - description() : QString           - returns a description
  *      - create()      : api::ISimulation* - returns a new instance of your simulation class
  *      - properties()  : api::Variables    - returns a pointer to input parameters
  *      - statistics()  : api::Variables    - returns a pointer to output statistics
@@ -33,13 +33,14 @@
  *      - setup(VariableWatchList properties) : void
  *          Initializes state using variables defined in ISimulationDLL::properties().
  *          Access values by name, e.g.:
- *              int gates = properties.get<int>("Bramki");
+ *                  properties.get<int>("Param 1")
+ *                  properties.get<int>("Parameter:Param 1")
  *
  *      - run(api::NumberGenerator* generator) : void
  *          Executes simulation logic and updates statistics declared in
  *          ISimulationDLL::statistics(). Access statistics by reference, e.g.:
- *              auto& trials = stats.ref<int>("Rozegrane");
- *              ++trials; // updating the reference modifies the stored statistic
+ *              auto* trials = stats.ref<int>("Trials");
+ *              ++(*trials); // updating the reference modifies the stored statistic
  *          This reference semantics is important: modifying the ref updates the
  *          internal statistics used by the framework.
  *          The provided NumberGenerator must be used for randomness—do not use
@@ -63,9 +64,18 @@
  *          api::var<int>("Wins", "Won games", 0),
  *          api::var<int>("Losses", "Lost games", 0));
  *
- *      In setup(), read properties via properties.get<T>("Param 1").
+ *      The supported variable types are: bool, int, double, QString
+ *
+ *      In setup(), read properties via:
+ *                  name :      properties.get<T>("Param 1")
+ *                  subname :   properties.get<T>("Parameter:Param 1")
+ *                  fullname:   properties.get<T>("Root Group:Parameter:Param 1")
  *      In run(), update statistics via stats.ref<T>("Wins"), which returns a REFERENCE
- *      that must be modified to change the stored values.
+ *      that MUST BE modified to change the stored values.
+ *
+ *      Use subname or fullname to distinguish between variables with the same name but
+ *      belonging to different groups.
+ *      The full name of a variable MUST BE unique.
  *
  * Optional:
  *      - emit progress(stats) from run() if you need more frequent UI/statistics updates.
@@ -93,6 +103,34 @@ class ISimulation : public QObject
 
 public:
     using QObject::QObject;
+
+public:
+    /**
+     * @brief setup
+     * Initializes state
+     * @param properties, variables defined in ISimulationDLL::properties()
+     */
+    virtual void setup(VariableWatchList properties) = 0;
+
+    /**
+     * @brief run
+     * Executes simulation logic and updates statistics declared in
+     * ISimulationDLL::statistics(). Access statistics by reference, e.g.:
+     *     auto* trials = stats.ref<int>("Trials");
+     *     ++(*trials); // updating the reference modifies the stored statistic
+     * This reference semantics is important: modifying the ref updates the
+     * internal statistics used by the framework.
+     * @param generator
+     *      The provided NumberGenerator must be used for randomness—do not use
+     *      standard C++ random generators, otherwise UI configuration may not work.
+     */
+    virtual void run(NumberGenerator& generator) = 0;
+
+    /**
+     * @brief teardown
+     * Releases all resources.
+     */
+    virtual void teardown() = 0;
 
 signals:
     /**
@@ -188,10 +226,6 @@ class SimpleSimulation : public ISimulation
 public:
     using ISimulation::ISimulation;
 
-    virtual void setup(VariableWatchList properties) = 0;
-    virtual void run(NumberGenerator& generator) = 0;
-    virtual void teardown() = 0;
-
 public slots:
     void _setup(Variables properties, Variables statistics)
     {
@@ -266,10 +300,6 @@ class AnimatedSimulation : public ISimulation
 
 public:
     using ISimulation::ISimulation;
-
-    virtual void setup(VariableWatchList properties) = 0;
-    virtual void run(NumberGenerator& generator) = 0;
-    virtual void teardown() = 0;
 
 public slots:
     void _setup(Variables properties, Variables statistics)

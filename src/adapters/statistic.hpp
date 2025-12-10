@@ -50,24 +50,24 @@ public:
 
     void setValue(const QVariant&)
     {
-        Q_ASSERT("Setting stats from code is invalid");
+        Q_ASSERT_X(false, "adapters::Statistic::setValue(const QVariant&)", "Setting stats from code is invalid");
     }
 
     QObjectList children() const
     {
-        Q_ASSERT("Calling children on adapters::Statistics is invalid");
+        Q_ASSERT_X(false, "adapters::Statistic::children() const", "Calling children is invalid");
         return QObject::children();
     }
 
     QObject* raw()
     {
-        Q_ASSERT("Calling raw on adapters::Statistics is invalid");
+        Q_ASSERT_X(false, "adapters::Statistic::raw()", "Calling raw() is invalid");
         return nullptr;
     }
 
     const QObject* raw() const
     {
-        Q_ASSERT("Calling raw on adapters::Statistics is invalid");
+        Q_ASSERT_X(false, "adapters::Statistic::raw() const", "Calling raw() is invalid");
         return nullptr;
     }
 
