@@ -1,7 +1,9 @@
 #include "workerhandlerfactory.hpp"
 
 #include "api/simulation.hpp"
-#include "simpleworkerhandler.hpp"
+#include "workerhandler.hpp"
+#include "controllers/simplecontroller.hpp"
+#include "controllers/animatedcontroller.hpp"
 
 
 namespace workers
@@ -10,7 +12,8 @@ namespace workers
 WorkerHandlerFactory::WorkerHandlerFactory(QObject* parent)
     : QObject(parent)
 {
-    registerHandler<api::SimpleSimulation, SimpleWorkerHandler>();
+    registerController<api::SimpleSimulation, controllers::SimpleController>();
+    registerController<api::AnimatedSimulation, controllers::AnimatedController>();
 }
 
 IWorkerHandler* WorkerHandlerFactory::createFrom(api::ISimulationDLL* plugin)
@@ -24,10 +27,10 @@ IWorkerHandler* WorkerHandlerFactory::createFrom(api::ISimulationDLL* plugin)
 
     for (const auto& factory : m_factoryMethods)
     {
-        if (auto worker = factory(simulation, plugin))
+        if (auto controller = factory(simulation, plugin))
         {
             delete simulation;
-            return worker;
+            return new WorkerHandler(plugin, controller);
         }
     }
     delete simulation;

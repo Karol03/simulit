@@ -30,6 +30,7 @@ private:
     QString* averageDelayTime = nullptr;
     int* longestOnTimeSeries = nullptr;
     int* longestLateSeries = nullptr;
+    double* percentOfDelays = nullptr;
 
     // --- Suuport variables for statistics ---
     // not present in UI but required to calculate others

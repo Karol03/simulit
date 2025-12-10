@@ -4,6 +4,7 @@
 #include <QUrl>
 
 #include "api/variable.hpp"
+#include "providers/iprovider.hpp"
 
 
 namespace controllers
@@ -25,6 +26,7 @@ public:
 
     virtual QUrl uiSource() const = 0;
     virtual api::Variables properties() = 0;
+    virtual providers::IProvider* statistics() = 0;
 };
 
 }  // namespace controllers

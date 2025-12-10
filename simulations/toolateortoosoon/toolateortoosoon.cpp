@@ -14,19 +14,20 @@ TooLateOrTooSoonSimulationDLL::TooLateOrTooSoonSimulationDLL(QObject* parent)
 
     m_properties = api::var("Symulacja", this,
         api::var("Autobus",
-            api::var<QString>("Najwcześniej", "Najwcześniejsza godzina przyjazdu autobusu w formacie hh:mm lub hh:mm:ss", "", matchTimeFormat),
-            api::var<QString>("Najpóźniej", "Najpóźniejsza godzina przyjazdu autobusu w formacie hh:mm lub hh:mm:ss", "", matchTimeFormat)),
+            api::var<QString>("Najwcześniej", "Najwcześniejsza godzina przyjazdu autobusu\nFromat hh:mm lub hh:mm:ss <00:00, 23:59:59>", "7:58", matchTimeFormat),
+            api::var<QString>("Najpóźniej", "Najpóźniejsza godzina przyjazdu autobusu\nFormat hh:mm lub hh:mm:ss <00:00, 23:59:59>", "8:02", matchTimeFormat)),
         api::var("Chłopiec",
-            api::var<QString>("Najwcześniej", "Najwcześniejsza godzina przyjazdu chłopca na przystanek w formacie hh:mm lub hh:mm:ss", "", matchTimeFormat),
-            api::var<QString>("Najpóźniej", "Najpóźniejsza godzina przyjazdu chłopca na przystanek w formacie hh:mm lub hh:mm:ss", "", matchTimeFormat)));
+            api::var<QString>("Najwcześniej", "Najwcześniejsza godzina przyjazdu chłopca na przystanek\nFormat hh:mm lub hh:mm:ss <00:00, 23:59:59>", "7:55", matchTimeFormat),
+            api::var<QString>("Najpóźniej", "Najpóźniejsza godzina przyjazdu chłopca na przystanek\nFormat hh:mm lub hh:mm:ss <00:00, 23:59:59>", "8:01", matchTimeFormat)));
     m_statistics = api::var(this,
         api::var<int>("Próby", "Liczba prób", 0),
         api::var<int>("Na czas", "Ile razy chłopiec zdążył na autobus", 0),
         api::var<int>("Najdłuższa seria na czas", "Najdłuższa seria dni, gdy chłopiec był na czas", 0),
-        api::var<QString>("Średni czas czekania", "Średni czas oczekiwania, gdy chłopiec się nie spóźnił"),
+        api::var<QString>("Średni czas czekania", "Średni czas oczekiwania, gdy chłopiec się nie spóźnił", "00:00:00"),
         api::var<int>("Spóźnienia", "Ile razy chłopiec spóźnił się na autobus", 0),
-        api::var<QString>("Średni spóźnienie", "Średni czas spóźnienia, gdy chłopiec przyjechał zbyt późno"),
-        api::var<int>("Najdłuższa seria spóźnień", "Najdłuższa seria dni, gdy chłopiec się spóźnił", 0));
+        api::var<QString>("Średnie spóźnienie", "Średni czas spóźnienia, gdy chłopiec przyjechał zbyt późno", "00:00:00"),
+        api::var<int>("Najdłuższa seria spóźnień", "Najdłuższa seria dni, gdy chłopiec się spóźnił", 0),
+        api::var<double>("Procent spóźnień", "Stostunek spóźnień do wszystkich prób", 0.0));
 }
 
 QString TooLateOrTooSoonSimulationDLL::name() const
@@ -76,10 +77,10 @@ void TooLateOrTooSoonSimulation::setup(api::VariableWatchList properties)
     };
 
     // Get properties as QString
-    auto busArrivalFromStr = properties.get<QString>("Autobus::Najwcześniej");
-    auto busArrivalToStr = properties.get<QString>("Autobus::Najpóźniej");
-    auto boyArrivalFromStr = properties.get<QString>("Chłopiec::Najwcześniej");
-    auto boyArrivalToStr = properties.get<QString>("Chłopiec::Najpóźniej");
+    auto busArrivalFromStr = properties.get<QString>("Autobus:Najwcześniej");
+    auto busArrivalToStr = properties.get<QString>("Autobus:Najpóźniej");
+    auto boyArrivalFromStr = properties.get<QString>("Chłopiec:Najwcześniej");
+    auto boyArrivalToStr = properties.get<QString>("Chłopiec:Najpóźniej");
 
     // Converted properties from QString "hh:mm" or "hh:mm:ss" to seconds since midnight
     busArrivalFrom = convertTime(busArrivalFromStr);
@@ -100,9 +101,10 @@ void TooLateOrTooSoonSimulation::setup(api::VariableWatchList properties)
     onTime = &stats.ref<int>("Na czas");
     late = &stats.ref<int>("Spóźnienia");
     averageWaitingTime = &stats.ref<QString>("Średni czas czekania");
-    averageDelayTime = &stats.ref<QString>("Średni spóźnienie");
+    averageDelayTime = &stats.ref<QString>("Średnie spóźnienie");
     longestOnTimeSeries = &stats.ref<int>("Najdłuższa seria na czas");
     longestLateSeries = &stats.ref<int>("Najdłuższa seria spóźnień");
+    percentOfDelays = &stats.ref<double>("Procent spóźnień");
 }
 
 void TooLateOrTooSoonSimulation::run(api::NumberGenerator& generator)
@@ -126,7 +128,7 @@ void TooLateOrTooSoonSimulation::run(api::NumberGenerator& generator)
         ++(*onTime);
         const int64_t waitingTime = busArrivalTime - boyArrivalTime;
         totalWaitingTimeInt += waitingTime;
-        *averageWaitingTime = convertToTime(totalWaitingTimeInt / static_cast<int64_t>(*trials));
+        *averageWaitingTime = convertToTime(totalWaitingTimeInt / static_cast<int64_t>(*onTime));
         series = std::max(series + 1, 1);
         *longestOnTimeSeries = std::max(*longestOnTimeSeries, series);
     }
@@ -136,10 +138,11 @@ void TooLateOrTooSoonSimulation::run(api::NumberGenerator& generator)
         ++(*late);
         const int64_t delayTime = boyArrivalTime - busArrivalTime;
         totalDelayTimeInt += delayTime;
-        *averageDelayTime = convertToTime(totalDelayTimeInt / static_cast<int64_t>(*trials));
+        *averageDelayTime = convertToTime(totalDelayTimeInt / static_cast<int64_t>(*late));
         series = std::min(series - 1, -1);
         *longestLateSeries = std::max(*longestLateSeries, -series);
     }
+    *percentOfDelays = static_cast<double>(*late * 100) / static_cast<double>(*trials);
 }
 
 void TooLateOrTooSoonSimulation::teardown()

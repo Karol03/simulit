@@ -13,7 +13,7 @@
 namespace api
 {
 class ISimulationDLL;
-class SimpleSimulation;
+class AnimatedSimulation;
 class NumberGenerator;
 }  // namespace api
 
@@ -21,7 +21,7 @@ class NumberGenerator;
 namespace controllers
 {
 
-class SimpleController : public IController
+class AnimatedController : public IController
 {
     Q_OBJECT
 
@@ -37,9 +37,9 @@ class SimpleController : public IController
     };
 
 public:
-    SimpleController(api::ISimulationDLL* plugin,
+    AnimatedController(api::ISimulationDLL* plugin,
                      QObject* parent = nullptr);
-    ~SimpleController();
+    ~AnimatedController();
 
     Q_INVOKABLE void start();
     Q_INVOKABLE void pause();
@@ -72,7 +72,7 @@ private:
     bool isSimulationExists() const;
     void nextRun();
 
-    void bindSignals(api::SimpleSimulation* simulation);
+    void bindSignals(api::AnimatedSimulation* simulation);
     void simulationStart();
 
     void simulationStop();

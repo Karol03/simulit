@@ -20,7 +20,7 @@ class Property : public IAdapter
     Q_PROPERTY(QString type READ type CONSTANT)      // "text" / "int" / "double" / "bool"
     Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY changed)
     Q_PROPERTY(bool isGroup READ isGroup CONSTANT)
-    Q_PROPERTY(QObjectList children READ children CONSTANT)
+    Q_PROPERTY(int groupDepth READ groupDepth CONSTANT)
 
 public:
     explicit Property(api::IVariable* prop, QObject* parent)
@@ -28,14 +28,6 @@ public:
         , m_prop(prop)
     {
         Q_ASSERT(m_prop);
-
-        if (auto propertyGroup = dynamic_cast<api::VariableGroup*>(prop))
-        {
-            for (const auto& child : propertyGroup->inner())
-            {
-                new adapters::Property(dynamic_cast<api::IVariable*>(child), this);
-            }
-        }
     }
 
     QString label() const
@@ -69,14 +61,16 @@ public:
         }
     }
 
-    QObjectList children() const
-    {
-        return QObject::children();
-    }
-
     bool isGroup() const
     {
-        return !QObject::children().empty();
+        return m_prop && !m_prop->children().isEmpty();
+    }
+
+    int groupDepth() const
+    {
+        if (m_prop)
+            return depthOf(m_prop);
+        return 0;
     }
 
     QObject* raw() override
@@ -100,6 +94,16 @@ public slots:
 
 signals:
     void changed(const QVariant& v);
+
+private:
+    int depthOf(api::IVariable* var) const
+    {
+        if (!var->parent())
+            return 0;
+        if (auto parentVar = dynamic_cast<api::IVariable*>(var->parent()))
+            return 1 + depthOf(parentVar);
+        return 0;
+    }
 
 private:
     QPointer<api::IVariable> m_prop;

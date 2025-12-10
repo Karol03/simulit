@@ -20,7 +20,7 @@ public:
     /**
      * @brief operator ()
      * @param to upper bound of random value
-     * @return random integer in range <0, to)
+     * @return random integer in range <0, to>
      */
     virtual int operator()(int to) = 0;
 
@@ -28,7 +28,7 @@ public:
      * @brief operator ()
      * @param from lower bound of random value
      * @param to upper bound of random value
-     * @return random integer in range <from, to)
+     * @return random integer in range <from, to>
      */
     virtual int operator()(int from, int to) = 0;
 };

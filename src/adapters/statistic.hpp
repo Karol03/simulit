@@ -17,8 +17,7 @@ class Statistic : public IAdapter
 
     Q_PROPERTY(QString label READ label CONSTANT)
     Q_PROPERTY(QString hint READ hint CONSTANT)
-    Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY changed)
-    Q_PROPERTY(QObjectList children READ children CONSTANT)
+    Q_PROPERTY(QVariant value READ value NOTIFY changed)
 
 public:
     explicit Statistic(QString label,
@@ -46,17 +45,6 @@ public:
     QVariant value() const
     {
         return m_watchedVariables[m_id];
-    }
-
-    void setValue(const QVariant&)
-    {
-        Q_ASSERT_X(false, "adapters::Statistic::setValue(const QVariant&)", "Setting stats from code is invalid");
-    }
-
-    QObjectList children() const
-    {
-        Q_ASSERT_X(false, "adapters::Statistic::children() const", "Calling children is invalid");
-        return QObject::children();
     }
 
     QObject* raw()

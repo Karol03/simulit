@@ -346,13 +346,13 @@ public:
         {
             if (auto pos = find(name); pos != -1)
                 return m_datas[pos];
-            throw std::runtime_error{std::format("Variable (name: {}) not on the watch list", name.toStdString())};
+            throw std::runtime_error{std::format("Variable (name: {}) not on the watch list.\n{}", name.toStdString(), validate(name).toStdString())};
         }
         QVariant operator[](const int& id) const
         {
             if (id < m_datas.size())
                 return m_datas[id];
-            throw std::runtime_error{std::format("Variable (id: {}) not on the watch list", id)};
+            throw std::runtime_error{std::format("Variable (id: {}) not on the watch list, there is {} elements on list", id, m_datas.size())};
         }
     private:
         int find(const QString& name) const
@@ -366,6 +366,17 @@ public:
                 }
             }
             return -1;
+        }
+        QString validate(const QString& name) const
+        {
+            if (name == ":")
+                return QString("Invalid name ':'");
+            if (!name.isEmpty() && name.back() == ':')
+                return QString("Fullname of variable can't ends on ':");
+            for (std::size_t i = 0; i + 1 < name.size(); ++i)
+                if (name[i] == ':' && name[i+1] == ':')
+                    return QString("Check if you have intentionally used double colons “:”");
+            return QString("No variable with the specified name was found");
         }
     private:
         QVariantList m_datas;

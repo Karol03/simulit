@@ -1,4 +1,4 @@
-#include "simplecontroller.hpp"
+#include "animatedcontroller.hpp"
 
 #include <QTimer>
 #include "api/simulation.hpp"
@@ -8,7 +8,7 @@
 namespace controllers
 {
 
-SimpleController::SimpleController(api::ISimulationDLL* plugin,
+AnimatedController::AnimatedController(api::ISimulationDLL* plugin,
                                    QObject* parent)
     : IController(parent)
     , m_plugin{plugin}
@@ -26,49 +26,49 @@ SimpleController::SimpleController(api::ISimulationDLL* plugin,
     prepareSimulationThread();
 }
 
-SimpleController::~SimpleController()
+AnimatedController::~AnimatedController()
 {
     quitSimulationThread();
 }
 
-QUrl SimpleController::uiSource() const
+QUrl AnimatedController::uiSource() const
 {
-    return QUrl("qrc:/qt/qml/simulit/gui/controllers/SimpleController.qml");
+    return QUrl("qrc:/qt/qml/simulit/gui/controllers/AnimatedController.qml");
 }
 
-api::Variables SimpleController::properties()
+api::Variables AnimatedController::properties()
 {
     return m_properties;
 }
 
-providers::IProvider* SimpleController::statistics()
+providers::IProvider* AnimatedController::statistics()
 {
     return &m_statistics;
 }
 
-ControllerState::State SimpleController::state() const
+ControllerState::State AnimatedController::state() const
 {
     return m_state;
 }
 
-void SimpleController::transitionTo(ControllerState::State state)
+void AnimatedController::transitionTo(ControllerState::State state)
 {
     m_state = state;
     m_isBusy = false;
     emit stateChanged(m_state);
 }
 
-void SimpleController::prepareSimulationThread()
+void AnimatedController::prepareSimulationThread()
 {
     Q_ASSERT(m_simulationThread == nullptr);
     m_simulationThread = new QThread(this);
-    auto simulation = dynamic_cast<api::SimpleSimulation*>(m_plugin->create());
+    auto simulation = dynamic_cast<api::AnimatedSimulation*>(m_plugin->create());
     bindSignals(simulation);
     simulation->moveToThread(m_simulationThread);
     m_simulationThread->start();
 }
 
-void SimpleController::quitSimulationThread()
+void AnimatedController::quitSimulationThread()
 {
     if (m_simulationThread)
     {
@@ -79,63 +79,63 @@ void SimpleController::quitSimulationThread()
     }
 }
 
-void SimpleController::bindSignals(api::SimpleSimulation* simulation)
+void AnimatedController::bindSignals(api::AnimatedSimulation* simulation)
 {
     // setup simulation
-    QObject::connect(this, &controllers::SimpleController::setupSimulation,
-                     simulation, &api::SimpleSimulation::_setup);
+    QObject::connect(this, &controllers::AnimatedController::setupSimulation,
+                     simulation, &api::AnimatedSimulation::_setup);
 
     // simulation declares ready to run
-    QObject::connect(simulation, &api::SimpleSimulation::_setupFinished,
-                     this, &controllers::SimpleController::onSimulationReadyToRun);
+    QObject::connect(simulation, &api::AnimatedSimulation::_setupFinished,
+                     this, &controllers::AnimatedController::onSimulationReadyToRun);
 
     // start simulation
-    QObject::connect(this, &controllers::SimpleController::runSimulation,
-                     simulation, &api::SimpleSimulation::_run);
+    QObject::connect(this, &controllers::AnimatedController::runSimulation,
+                     simulation, &api::AnimatedSimulation::_run);
 
     // update simulation statistics if library calls
-    QObject::connect(simulation, &api::SimpleSimulation::progress,
-                     this, &controllers::SimpleController::onSimulationUpdateProgress);
+    QObject::connect(simulation, &api::AnimatedSimulation::progress,
+                     this, &controllers::AnimatedController::onSimulationUpdateProgress);
 
     // simulation finished the run
-    QObject::connect(simulation, &api::SimpleSimulation::_runFinished,
-                     this, &controllers::SimpleController::onSimulationRunFinished);
+    QObject::connect(simulation, &api::AnimatedSimulation::_runFinished,
+                     this, &controllers::AnimatedController::onSimulationRunFinished);
 
     // teardown simulations
-    QObject::connect(this, &controllers::SimpleController::teardownSimulation,
-                     simulation, &api::SimpleSimulation::_teardown);
+    QObject::connect(this, &controllers::AnimatedController::teardownSimulation,
+                     simulation, &api::AnimatedSimulation::_teardown);
 
     // simulation finished last run and teardown actions
-    QObject::connect(simulation, &api::SimpleSimulation::_teardownFinished,
-                     this, &controllers::SimpleController::simulationStop);
+    QObject::connect(simulation, &api::AnimatedSimulation::_teardownFinished,
+                     this, &controllers::AnimatedController::simulationStop);
 
     // destroy object on thread end
     QObject::connect(m_simulationThread, &QThread::destroyed,
                      simulation, &QObject::deleteLater);
 
     // display error on screen if reported by the simulation
-    QObject::connect(simulation, &api::SimpleSimulation::error,
-                     this, &controllers::SimpleController::onSimulationError);
+    QObject::connect(simulation, &api::AnimatedSimulation::error,
+                     this, &controllers::AnimatedController::onSimulationError);
 }
 
-void SimpleController::onSimulationUpdateProgress(const api::VariableMapSnapshot& update)
+void AnimatedController::onSimulationUpdateProgress(const api::VariableMapSnapshot& update)
 {
     m_statistics.updateWatched(update);
 }
 
-void SimpleController::onSimulationRunFinished(const api::VariableMapSnapshot& update)
+void AnimatedController::onSimulationRunFinished(const api::VariableMapSnapshot& update)
 {
     m_statistics.updateWatched(update);
     nextRun();
 }
 
-void SimpleController::onSimulationError(const QString& message)
+void AnimatedController::onSimulationError(const QString& message)
 {
     simulationStop();
     emit error(message);
 }
 
-void SimpleController::simulationStart()
+void AnimatedController::simulationStart()
 {
     auto propertyMap = api::VariableMap(m_properties);
     int iterations = propertyMap.ref<int>("Liczba przebiegów");
@@ -153,14 +153,14 @@ void SimpleController::simulationStart()
     emit setupSimulation(m_plugin->properties(), m_plugin->statistics());
 }
 
-void SimpleController::onSimulationReadyToRun(const api::VariableMapSnapshot& update)
+void AnimatedController::onSimulationReadyToRun(const api::VariableMapSnapshot& update)
 {
     m_statistics.updateWatched(update);
     transitionTo(ControllerState::Running);
     nextRun();
 }
 
-void SimpleController::nextRun()
+void AnimatedController::nextRun()
 {
     if (m_state == ControllerState::Paused)
     {
@@ -175,7 +175,7 @@ void SimpleController::nextRun()
         if (delay < m_controlParams.minDelayBetweenRuns)
         {
             auto diff = m_controlParams.minDelayBetweenRuns - delay;
-            QTimer::singleShot(diff, this, &SimpleController::nextRun);
+            QTimer::singleShot(diff, this, &AnimatedController::nextRun);
             return;
         }
 
@@ -189,24 +189,24 @@ void SimpleController::nextRun()
     }
 }
 
-void SimpleController::simulationStop()
+void AnimatedController::simulationStop()
 {
     quitSimulationThread();
     transitionTo(ControllerState::Stopped);
 }
 
-void SimpleController::simulationRestart()
+void AnimatedController::simulationRestart()
 {
     prepareSimulationThread();
     transitionTo(ControllerState::Ready);
 }
 
-bool SimpleController::isSimulationExists() const
+bool AnimatedController::isSimulationExists() const
 {
     return m_simulationThread && m_simulationThread->isRunning();
 }
 
-void SimpleController::start()
+void AnimatedController::start()
 {
     if (m_isBusy)
         return;
@@ -225,7 +225,7 @@ void SimpleController::start()
     }
 }
 
-void SimpleController::pause()
+void AnimatedController::pause()
 {
     if (m_isBusy)
         return;
@@ -239,7 +239,7 @@ void SimpleController::pause()
     }
 }
 
-void SimpleController::stop()
+void AnimatedController::stop()
 {
     if (m_isBusy)
         return;
@@ -253,7 +253,7 @@ void SimpleController::stop()
     }
 }
 
-void SimpleController::restart()
+void AnimatedController::restart()
 {
     if (m_isBusy)
         return;

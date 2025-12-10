@@ -42,13 +42,15 @@ qt_add_executable(appsimulit
     src/controllers/controllerstate.hpp
     src/controllers/simplecontroller.hpp
     src/controllers/simplecontroller.cpp
+    src/controllers/animatedcontroller.hpp
+    src/controllers/animatedcontroller.cpp
 
     src/workers/iworker.hpp
     src/workers/iworkerhandler.hpp
     src/workers/pool.hpp
     src/workers/pool.cpp
-    src/workers/simpleworkerhandler.hpp
-    src/workers/simpleworkerhandler.cpp
+    src/workers/workerhandler.hpp
+    src/workers/workerhandler.cpp
     src/workers/workerhandlerfactory.hpp
     src/workers/workerhandlerfactory.cpp
 
@@ -72,6 +74,7 @@ qt_add_qml_module(appsimulit
         gui/StatisticItem.qml
 
         gui/controllers/SimpleController.qml
+        gui/controllers/AnimatedController.qml
         gui/controllers/FocalButton.qml
         gui/controllers/AssistButton.qml
     SOURCES

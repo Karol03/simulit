@@ -146,7 +146,6 @@ ApplicationWindow {
             }
         }
 
-
         // --- Simulation properties panel on the right--
         Rectangle {
             id: propertiesPanel
@@ -372,12 +371,10 @@ ApplicationWindow {
                 }
             }
 
-
             Text {
                 horizontalAlignment: Text.AlignHCenter
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 14
+                Layout.alignment: Qt.AlignBottom | Qt.AlignHCenter
+                Layout.bottomMargin: 14
                 font.family: "Source Sans 3"
                 font.pixelSize: 10
                 color: Qt.lighter(panelColor, 1.4)
