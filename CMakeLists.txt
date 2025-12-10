@@ -79,6 +79,8 @@ qt_add_qml_module(appsimulit
         gui/controllers/AssistButton.qml
     SOURCES
         src/controllers/controllerstate.hpp
+        src/providers/image.hpp
+        src/providers/image.cpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -95,7 +97,8 @@ set_target_properties(appsimulit PROPERTIES
 # required include for enum generation
 target_include_directories(appsimulit
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/controllers
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/controllers
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/providers
 )
 
 target_link_libraries(appsimulit

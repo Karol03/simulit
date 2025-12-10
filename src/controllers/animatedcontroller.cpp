@@ -52,7 +52,7 @@ ControllerState::State AnimatedController::state() const
     return m_state;
 }
 
-QVariant AnimatedController::image() const
+QImage AnimatedController::image() const
 {
     return m_image;
 }
@@ -66,7 +66,7 @@ void AnimatedController::transitionTo(ControllerState::State state)
 {
     m_state = state;
     m_isBusy = false;
-    emit stateChanged();
+    emit stateChanged(m_state);
 }
 
 void AnimatedController::redraw(const QImage& image)
@@ -74,7 +74,7 @@ void AnimatedController::redraw(const QImage& image)
     if (m_controlParams.animation)
     {
         m_image = image;
-        emit imageChanged();
+        emit imageChanged(m_image);
     }
 }
 

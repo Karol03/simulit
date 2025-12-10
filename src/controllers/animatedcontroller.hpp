@@ -27,7 +27,7 @@ class AnimatedController : public IController
     Q_OBJECT
 
     Q_PROPERTY(ControllerState::State state READ state NOTIFY stateChanged)
-    Q_PROPERTY(QVariant image READ image NOTIFY imageChanged)
+    Q_PROPERTY(QImage image READ image NOTIFY imageChanged)
     Q_PROPERTY(bool imageAvailable READ imageAvailable NOTIFY imageAvailableChanged)
 
     struct SimulationControlParams
@@ -55,12 +55,12 @@ public:
     providers::IProvider* statistics() override;
 
     ControllerState::State state() const;
-    QVariant image() const;
+    QImage image() const;
     bool imageAvailable() const;
 
 signals:
-    void stateChanged();
-    void imageChanged();
+    void stateChanged(const ControllerState::State &image);
+    void imageChanged(const QImage &image);
     void imageAvailableChanged();
     void error(const QString& message);
 

@@ -112,15 +112,16 @@ void TooLateOrTooSoonSimulation::setup(api::VariableWatchList properties)
     // If animations enabled, prepare view
     if (animate)
     {
-        image.fill(Qt::white);
-        currentRow = 0;
+        // image = QImage(400, 400, QImage::Format_ARGB32_Premultiplied);
+        // image.fill(Qt::transparent);
 
-        QPainter p(&image);
-        p.setRenderHint(QPainter::Antialiasing);
+        // // currentRow = 0;
 
-        p.setPen(Qt::black);
-        p.drawLine(0, image.height() - 1,
-                   image.width() - 1, image.height() - 1);
+        // QPainter p(&image);
+        // p.setRenderHint(QPainter::Antialiasing);
+        // p.setPen(Qt::white);
+        // p.drawLine(0, 200, 200, 200);
+        // p.drawLine(0, 0, 0, 200);
     }
 }
 

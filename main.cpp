@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     SimulationHandler handler;
 
+    qRegisterMetaType<QImage>("QImage");
     engine.rootContext()->setContextProperty("simulationHandler", &handler);
 
     QObject::connect(

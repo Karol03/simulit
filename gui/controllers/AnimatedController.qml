@@ -22,13 +22,17 @@ Item {
         parent: Window.window ? Window.window.contentItem : null
         z: -1
 
-        Image {
-            id: simulationImage
+        ImageProvider {
+            id: imageItem
             anchors.fill: parent
             anchors.margins: 10
-            fillMode: Image.PreserveAspectFit
-            visible: root.controller && root.controller.imageAvailable
-            source: root.controller?.image ?? ""
+        }
+
+        Connections {
+            target: controller
+            function onImageChanged(image) {
+                imageItem.setImage(image)
+            }
         }
     }
 
