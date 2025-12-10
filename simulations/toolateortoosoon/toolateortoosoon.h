@@ -21,6 +21,7 @@ private:
     int busArrivalTo = 0;
     int boyArrivalFrom = 0;
     int boyArrivalTo = 0;
+    bool animate = false;
 
     // --- Variables for statistics ---
     int* trials = nullptr;
@@ -37,6 +38,7 @@ private:
     int64_t totalWaitingTimeInt = 0;
     int64_t totalDelayTimeInt = 0;
     int series = 0;
+    int currentRow = 0;
 };
 
 

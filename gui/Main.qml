@@ -56,7 +56,7 @@ ApplicationWindow {
         background: Rectangle {
             border.width: 0
             radius: 0
-            color: normalColor
+            color: "transparent"
         }
         MouseArea {
             anchors.fill: parent
@@ -99,7 +99,6 @@ ApplicationWindow {
                 anchors.topMargin: 6
                 anchors.rightMargin: 6
 
-                // mała strzałka pasująca do carda
                 text: simulationInfoCard.descriptionExpanded ? "\u25B2" : "\u25BC" // ▲ / ▼
                 font.pixelSize: 10
                 padding: 4
@@ -139,7 +138,6 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
 
-                    // tu magia: mało linii, gdy zwinięte; dużo, gdy rozwinięte
                     maximumLineCount: simulationInfoCard.descriptionExpanded ? 18 : 1
                     elide: Text.ElideRight
                 }
@@ -157,7 +155,13 @@ ApplicationWindow {
             bottomLeftRadius: 8
             border.width: 1
             border.color: "#444348"
-            x: simulationSelected ? parent.width - width - 8 : parent.width + 8
+
+            property bool panelExpanded: true
+            property int collapsedVisibleWidth: 26
+
+            x: simulationSelected
+               ? parent.width - (panelExpanded ? width : collapsedVisibleWidth) - 8
+               : parent.width + 8
 
             Behavior on x {
                 NumberAnimation {
@@ -199,13 +203,36 @@ ApplicationWindow {
                     Item { Layout.fillWidth: true; height: 8 }
                 }
             }
+
+            ToolButton {
+                id: togglePropertiesButton
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.topMargin: 8
+                anchors.leftMargin: 8
+
+                text: propertiesPanel.panelExpanded ? "\u25B6" : "\u25C0"   // ▶ / ◀
+                font.pixelSize: 14
+                padding: 4
+
+                background: Rectangle {
+                    radius: 6
+                    color: Qt.rgba(0, 0, 0, 0.2)
+                }
+
+                onClicked: propertiesPanel.panelExpanded = !propertiesPanel.panelExpanded
+
+                ToolTip.visible: hovered
+                ToolTip.text: propertiesPanel.panelExpanded
+                                ? qsTr("Zwiń panel")
+                                : qsTr("Rozwiń panel właściwości")
+            }
         }
 
         // --- Simulation statistics ---
         Rectangle {
             id: statisticsPanel
             width: parent.width * 0.5
-            height: 212
             color: Qt.darker(panelColor, 1.1)
             clip: true
             radius: 8
@@ -214,17 +241,84 @@ ApplicationWindow {
             x: parent.width * 0.1
             y: simulationSelected ? parent.height - height - 12 : parent.height + 14
 
-            Behavior on y {
+            property bool statisticsExpanded: true
+            property int expandedHeight: 212
+            property int collapsedHeight: 56
+
+            height: statisticsExpanded ? expandedHeight : collapsedHeight
+
+            Behavior on height {
                 NumberAnimation {
-                    duration: 260
+                    duration: 200
                     easing.type: Easing.InOutQuad
                 }
             }
 
+            RowLayout {
+                id: headerRow
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.margins: 8
+                spacing: 8
+
+                Label {
+                    text: qsTr("Statystyki")
+                    font.family: "Source Sans 3"
+                    font.pixelSize: 15
+                    font.bold: true
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignLeft
+                    elide: Text.ElideRight
+                }
+
+                ToolButton {
+                    id: toggleStatButton
+                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    text: statisticsPanel.statisticsExpanded ? "\u25BC" : "\u25B2" // ▼ / ▲
+                    font.pixelSize: 10
+                    padding: 4
+                    background: Rectangle {
+                        radius: 6
+                        color: Qt.rgba(0, 0, 0, 0.2)
+                    }
+
+                    onClicked: statisticsPanel.statisticsExpanded = !statisticsPanel.statisticsExpanded
+                    ToolTip.visible: hovered
+                    ToolTip.text: statisticsPanel.statisticsExpanded ?
+                                      qsTr("Zwiń") : qsTr("Rozwiń statystyki")
+                }
+            }
+
+            Rectangle {
+                anchors.top: headerRow.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                anchors.topMargin: 4
+                height: 1
+                color: "#494850"
+                opacity: 0.7
+            }
+
             ScrollView {
                 id: statisticsScroll
-                anchors.fill: parent
-                anchors.margins: 12
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: headerRow.bottom
+                anchors.bottom: parent.bottom
+                anchors.margins: 8
+                anchors.topMargin: 16
+
+                opacity: statisticsPanel.statisticsExpanded ? 1 : 0
+                visible: opacity > 0
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 150
+                        easing.type: Easing.InOutQuad
+                    }
+                }
 
                 ColumnLayout {
                     id: statisticsColumn
@@ -232,23 +326,6 @@ ApplicationWindow {
                              - statisticsScroll.ScrollBar.vertical.width
                              - 8
                     spacing: 8
-
-                    Label {
-                        text: qsTr("Statystyki")
-                        font.family: "Source Sans 3"
-                        font.pixelSize: 15
-                        font.bold: true
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignLeft
-                        elide: Text.ElideRight
-                    }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        height: 1
-                        color: "#494850"
-                        opacity: 0.7
-                    }
 
                     GridLayout {
                         id: statisticsGrid
@@ -279,7 +356,11 @@ ApplicationWindow {
             property var controller: simulationHandler ? simulationHandler.runtimeController : null
             onControllerChanged: {
                 if (controller) {
-                    setSource(controller.uiSource, { "controller": controller })
+                    setSource(controller.uiSource, {
+                                  "controller": controller,
+                                  "propertiesExpanded": Qt.binding(function() {
+                                      return propertiesPanel.panelExpanded
+                                  })})
                 } else {
                     source = ""
                 }

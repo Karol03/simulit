@@ -6,6 +6,7 @@ Item {
     id: root
 
     property var controller
+    property bool propertiesExpanded
 
     Dialog {
         id: errorDialog
@@ -35,12 +36,19 @@ Item {
         id: focalButton
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.rightMargin: 330
-        anchors.bottomMargin: 62
+        anchors.rightMargin: root.propertiesExpanded ? 320 : 128
+        anchors.bottomMargin: 92
         visible: controller !== null
 
         Behavior on opacity {
             NumberAnimation { duration: 200 }
+        }
+
+        Behavior on anchors.rightMargin {
+            NumberAnimation {
+                duration: 240
+                easing.type: Easing.InOutQuad
+            }
         }
 
         Binding {
@@ -55,8 +63,8 @@ Item {
         id: assistButton
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.rightMargin: 286
-        anchors.bottomMargin: 42
+        anchors.rightMargin: root.propertiesExpanded ? 276 : 84
+        anchors.bottomMargin: 72
         visible : root.controller &&
                   (root.controller.state === ControllerState.Running ||
                    root.controller.state === ControllerState.Paused)
@@ -64,6 +72,13 @@ Item {
 
         Behavior on opacity {
             NumberAnimation { duration: 200 }
+        }
+
+        Behavior on anchors.rightMargin {
+            NumberAnimation {
+                duration: 240
+                easing.type: Easing.InOutQuad
+            }
         }
 
         onClicked: root.controller.stop()

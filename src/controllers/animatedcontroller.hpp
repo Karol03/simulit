@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QQmlEngine>
+#include <QImage>
 #include <QThread>
 #include <chrono>
 
@@ -26,6 +27,8 @@ class AnimatedController : public IController
     Q_OBJECT
 
     Q_PROPERTY(ControllerState::State state READ state NOTIFY stateChanged)
+    Q_PROPERTY(QVariant image READ image NOTIFY imageChanged)
+    Q_PROPERTY(bool imageAvailable READ imageAvailable NOTIFY imageAvailableChanged)
 
     struct SimulationControlParams
     {
@@ -34,6 +37,7 @@ class AnimatedController : public IController
         int minDelayBetweenRuns;
         int currentIteration;
         int iterations;
+        bool animation;
     };
 
 public:
@@ -51,9 +55,13 @@ public:
     providers::IProvider* statistics() override;
 
     ControllerState::State state() const;
+    QVariant image() const;
+    bool imageAvailable() const;
 
 signals:
-    void stateChanged(ControllerState::State state); // clazy:exclude=fully-qualified-moc-types
+    void stateChanged();
+    void imageChanged();
+    void imageAvailableChanged();
     void error(const QString& message);
 
     void setupSimulation(api::Variables properties, api::Variables statistics); // clazy:exclude=fully-qualified-moc-types
@@ -61,9 +69,9 @@ signals:
     void teardownSimulation();
 
 private slots:
-    void onSimulationReadyToRun(const api::VariableMapSnapshot& update);
+    void onSimulationReadyToRun(const api::VariableMapSnapshot& update, const QImage& image);
     void onSimulationUpdateProgress(const api::VariableMapSnapshot& update);
-    void onSimulationRunFinished(const api::VariableMapSnapshot& update);
+    void onSimulationRunFinished(const api::VariableMapSnapshot& update, const QImage& image);
     void onSimulationError(const QString& message);
 
 private:
@@ -79,6 +87,7 @@ private:
     void simulationRestart();
 
     void transitionTo(ControllerState::State state);
+    void redraw(const QImage& image);
 
 private:
     api::ISimulationDLL* m_plugin;
@@ -88,6 +97,7 @@ private:
     ControllerState::State m_state;
     bool m_isBusy;
     SimulationControlParams m_controlParams;
+    QImage m_image;
 };
 
 }  // namespace controllers

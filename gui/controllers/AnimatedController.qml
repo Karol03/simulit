@@ -6,6 +6,31 @@ Item {
     id: root
 
     property var controller
+    property bool propertiesExpanded
+
+    Rectangle {
+        id: imageFrame
+        anchors.centerIn: parent
+        width: parent.width * 0.6
+        height: parent.height * 0.6
+        color: "#202020"
+        radius: 8
+        border.color: "#404040"
+        border.width: 1
+        visible: root.controller
+
+        parent: Window.window ? Window.window.contentItem : null
+        z: -1
+
+        Image {
+            id: simulationImage
+            anchors.fill: parent
+            anchors.margins: 10
+            fillMode: Image.PreserveAspectFit
+            visible: root.controller && root.controller.imageAvailable
+            source: root.controller?.image ?? ""
+        }
+    }
 
     Dialog {
         id: errorDialog
@@ -35,12 +60,19 @@ Item {
         id: focalButton
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.rightMargin: 330
-        anchors.bottomMargin: 62
+        anchors.rightMargin: root.propertiesExpanded ? 320 : 128
+        anchors.bottomMargin: 92
         visible: controller !== null
 
         Behavior on opacity {
             NumberAnimation { duration: 200 }
+        }
+
+        Behavior on anchors.rightMargin {
+            NumberAnimation {
+                duration: 240
+                easing.type: Easing.InOutQuad
+            }
         }
 
         Binding {
@@ -55,8 +87,8 @@ Item {
         id: assistButton
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.rightMargin: 286
-        anchors.bottomMargin: 42
+        anchors.rightMargin: root.propertiesExpanded ? 276 : 84
+        anchors.bottomMargin: 72
         visible : root.controller &&
                   (root.controller.state === ControllerState.Running ||
                    root.controller.state === ControllerState.Paused)
@@ -64,6 +96,13 @@ Item {
 
         Behavior on opacity {
             NumberAnimation { duration: 200 }
+        }
+
+        Behavior on anchors.rightMargin {
+            NumberAnimation {
+                duration: 240
+                easing.type: Easing.InOutQuad
+            }
         }
 
         onClicked: root.controller.stop()

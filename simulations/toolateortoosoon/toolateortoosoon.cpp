@@ -1,6 +1,7 @@
 #include "toolateortoosoon.h"
 
 #include <QRegularExpression>
+#include <QPainter>
 
 
 TooLateOrTooSoonSimulationDLL::TooLateOrTooSoonSimulationDLL(QObject* parent)
@@ -18,7 +19,8 @@ TooLateOrTooSoonSimulationDLL::TooLateOrTooSoonSimulationDLL(QObject* parent)
             api::var<QString>("Najpóźniej", "Najpóźniejsza godzina przyjazdu autobusu\nFormat hh:mm lub hh:mm:ss <00:00, 23:59:59>", "8:02", matchTimeFormat)),
         api::var("Chłopiec",
             api::var<QString>("Najwcześniej", "Najwcześniejsza godzina przyjazdu chłopca na przystanek\nFormat hh:mm lub hh:mm:ss <00:00, 23:59:59>", "7:55", matchTimeFormat),
-            api::var<QString>("Najpóźniej", "Najpóźniejsza godzina przyjazdu chłopca na przystanek\nFormat hh:mm lub hh:mm:ss <00:00, 23:59:59>", "8:01", matchTimeFormat)));
+            api::var<QString>("Najpóźniej", "Najpóźniejsza godzina przyjazdu chłopca na przystanek\nFormat hh:mm lub hh:mm:ss <00:00, 23:59:59>", "8:01", matchTimeFormat)),
+        api::var<bool>("Animowanie", "Włacza rysowanie wykresu z zaznaczonymi punktami przyjazdów\nautobusu oraz chłopca", false));
     m_statistics = api::var(this,
         api::var<int>("Próby", "Liczba prób", 0),
         api::var<int>("Na czas", "Ile razy chłopiec zdążył na autobus", 0),
@@ -81,6 +83,7 @@ void TooLateOrTooSoonSimulation::setup(api::VariableWatchList properties)
     auto busArrivalToStr = properties.get<QString>("Autobus:Najpóźniej");
     auto boyArrivalFromStr = properties.get<QString>("Chłopiec:Najwcześniej");
     auto boyArrivalToStr = properties.get<QString>("Chłopiec:Najpóźniej");
+    animate = properties.get<bool>("Animowanie");
 
     // Converted properties from QString "hh:mm" or "hh:mm:ss" to seconds since midnight
     busArrivalFrom = convertTime(busArrivalFromStr);
@@ -105,6 +108,20 @@ void TooLateOrTooSoonSimulation::setup(api::VariableWatchList properties)
     longestOnTimeSeries = &stats.ref<int>("Najdłuższa seria na czas");
     longestLateSeries = &stats.ref<int>("Najdłuższa seria spóźnień");
     percentOfDelays = &stats.ref<double>("Procent spóźnień");
+
+    // If animations enabled, prepare view
+    if (animate)
+    {
+        image.fill(Qt::white);
+        currentRow = 0;
+
+        QPainter p(&image);
+        p.setRenderHint(QPainter::Antialiasing);
+
+        p.setPen(Qt::black);
+        p.drawLine(0, image.height() - 1,
+                   image.width() - 1, image.height() - 1);
+    }
 }
 
 void TooLateOrTooSoonSimulation::run(api::NumberGenerator& generator)
@@ -143,6 +160,47 @@ void TooLateOrTooSoonSimulation::run(api::NumberGenerator& generator)
         *longestLateSeries = std::max(*longestLateSeries, -series);
     }
     *percentOfDelays = static_cast<double>(*late * 100) / static_cast<double>(*trials);
+
+    if (animate)
+    {
+        // // Update image only if animation is enabled
+        // const int w = image.width();
+        // const int h = image.height();
+
+        // // prosty sposób: każda próba to jedna linia (od góry w dół)
+        // int y = currentRow;
+        // currentRow = (currentRow + 1) % h;  // jak dojedziemy do końca, zaczynamy od góry (lub możesz przestać rysować)
+
+        // // zakres czasów, który mapujemy na szerokość
+        // const int minTime = std::min(busArrivalFrom, boyArrivalFrom);
+        // const int maxTime = std::max(busArrivalTo,   boyArrivalTo);
+
+        // auto toX = [&](int t) -> int {
+        //     double norm = double(t - minTime) / double(maxTime - minTime);
+        //     int x = int(norm * (w - 1));
+        //     if (x < 0) x = 0;
+        //     if (x >= w) x = w - 1;
+        //     return x;
+        // };
+
+        // const int xBus = toX(busArrivalTime);
+        // const int xBoy = toX(boyArrivalTime);
+
+        // QPainter p(&image);
+        // p.setRenderHint(QPainter::Antialiasing, false);
+
+        // // autobus – np. niebieski
+        // p.setPen(Qt::blue);
+        // p.drawPoint(xBus, y);
+
+        // // chłopiec – zielony gdy na czas, czerwony gdy spóźniony
+        // if (boyArrivalTime <= busArrivalTime)
+        //     p.setPen(Qt::darkGreen);
+        // else
+        //     p.setPen(Qt::red);
+
+        // p.drawPoint(xBoy, y);
+    }
 }
 
 void TooLateOrTooSoonSimulation::teardown()
