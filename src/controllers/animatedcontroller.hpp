@@ -28,7 +28,6 @@ class AnimatedController : public IController
 
     Q_PROPERTY(ControllerState::State state READ state NOTIFY stateChanged)
     Q_PROPERTY(QImage image READ image NOTIFY imageChanged)
-    Q_PROPERTY(bool imageAvailable READ imageAvailable NOTIFY imageAvailableChanged)
 
     struct SimulationControlParams
     {
@@ -37,12 +36,11 @@ class AnimatedController : public IController
         int minDelayBetweenRuns;
         int currentIteration;
         int iterations;
-        bool animation;
     };
 
 public:
     AnimatedController(api::ISimulationDLL* plugin,
-                     QObject* parent = nullptr);
+                       QObject* parent = nullptr);
     ~AnimatedController();
 
     Q_INVOKABLE void start();
@@ -56,12 +54,10 @@ public:
 
     ControllerState::State state() const;
     QImage image() const;
-    bool imageAvailable() const;
 
 signals:
     void stateChanged(const ControllerState::State &image);
     void imageChanged(const QImage &image);
-    void imageAvailableChanged();
     void error(const QString& message);
 
     void setupSimulation(api::Variables properties, api::Variables statistics); // clazy:exclude=fully-qualified-moc-types

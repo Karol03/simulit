@@ -21,8 +21,7 @@ AnimatedController::AnimatedController(api::ISimulationDLL* plugin,
     m_properties = api::var("Przebieg", this,
                             api::var<int>("Liczba przebiegów", "Liczba powtórzeń symulacji, im większa, tym dokładniejsze wyniki <1, 1'000'000>", 100, [](const int& value) { return 0 < value && value <= 1'000'000; }),
                             api::var<int>("Ziarno", "Ustalona wartość inicjalizująca\ngenerator losowy w celu powtarzalności wyników (random seed).\nUstaw 0 dla losowego ziarna", 0, [](const int& value) { return true; }),
-                            api::var<int>("Opóźnienie", "Opóźnienie pomiędzy kolejnymi iteracjami (w milisekundach <0-3000>)", 10, [](const int& value) { return 0 <= value && value <= 3000; }),
-                            api::var<bool>("Animacja", "Włącz / wyłącz aktualizowanie animacji podczas symulacji", false));
+                            api::var<int>("Opóźnienie", "Opóźnienie pomiędzy kolejnymi iteracjami (w milisekundach <0-3000>)", 0, [](const int& value) { return 0 <= value && value <= 3000; }));
 
     prepareSimulationThread();
 }
@@ -57,11 +56,6 @@ QImage AnimatedController::image() const
     return m_image;
 }
 
-bool AnimatedController::imageAvailable() const
-{
-    return m_controlParams.animation;
-}
-
 void AnimatedController::transitionTo(ControllerState::State state)
 {
     m_state = state;
@@ -71,11 +65,8 @@ void AnimatedController::transitionTo(ControllerState::State state)
 
 void AnimatedController::redraw(const QImage& image)
 {
-    if (m_controlParams.animation)
-    {
-        m_image = image;
-        emit imageChanged(m_image);
-    }
+    m_image = image;
+    emit imageChanged(m_image);
 }
 
 void AnimatedController::prepareSimulationThread()
@@ -163,18 +154,15 @@ void AnimatedController::simulationStart()
     int iterations = propertyMap.ref<int>("Liczba przebiegów");
     int seed = propertyMap.ref<int>("Ziarno");
     int delayBetweenRuns = propertyMap.ref<int>("Opóźnienie");
-    bool animation = propertyMap.ref<bool>("Animacja");
 
     auto params = SimulationControlParams{};
     params.numberGenerator = std::unique_ptr<api::NumberGenerator>(tools::NumberGeneratorFactory().create(seed));
     params.currentIteration = 0;
     params.iterations = iterations;
     params.minDelayBetweenRuns = delayBetweenRuns;
-    params.animation = animation;
     params.lastRunTimestamp = std::chrono::high_resolution_clock::now();
     std::swap(m_controlParams, params);
 
-    emit imageAvailableChanged();
     emit setupSimulation(m_plugin->properties(), m_plugin->statistics());
 }
 

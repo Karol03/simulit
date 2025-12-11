@@ -4,6 +4,36 @@
 #include <QPainter>
 
 
+// helper functions
+namespace
+{
+// Converts time in hh:mm or hh:mm:ss format to int
+auto convertTime(const QString& value)
+{
+    const QStringList parts = value.split(':');
+    int hours   = parts[0].toInt();
+    int minutes = parts[1].toInt();
+    int seconds = (parts.size() == 3) ? parts[2].toInt() : 0;
+    return hours * 3600 + minutes * 60 + seconds;
+}
+// Converts time from int to QString hh:mm:ss
+auto convertToTime(const int& value)
+{
+    const auto seconds = value % 60;
+    const auto minutesOverall = (value - seconds) / 60;
+    const auto minutes = minutesOverall % 60;
+    const auto hours = minutesOverall / 60;
+    return QString::asprintf("%02d:%02d:%02d", hours, minutes, seconds);
+}
+// map value from range <valueRangeFrom, valueRangeTo> to <targetRangeFrom, targetRangeTo>
+auto map(const int& value, const int& valueRangeFrom, const int& valueRangeTo,
+         const int& targetRangeFrom, const int& targetRangeTo)
+{
+    return (value - valueRangeFrom) * (targetRangeTo - targetRangeFrom) / (valueRangeTo - valueRangeFrom) + targetRangeFrom;
+}
+}  // namespace
+
+
 TooLateOrTooSoonSimulationDLL::TooLateOrTooSoonSimulationDLL(QObject* parent)
     : QObject(parent)
 {
@@ -68,16 +98,6 @@ api::Variables TooLateOrTooSoonSimulationDLL::statistics() const
 
 void TooLateOrTooSoonSimulation::setup(api::VariableWatchList properties)
 {
-    // Converts time in hh:mm or hh:mm:ss format to int
-    const auto convertTime = [](const QString& value)
-    {
-        const QStringList parts = value.split(':');
-        int hours   = parts[0].toInt();
-        int minutes = parts[1].toInt();
-        int seconds = (parts.size() == 3) ? parts[2].toInt() : 0;
-        return hours * 3600 + minutes * 60 + seconds;
-    };
-
     // Get properties as QString
     auto busArrivalFromStr = properties.get<QString>("Autobus:Najwcześniej");
     auto busArrivalToStr = properties.get<QString>("Autobus:Najpóźniej");
@@ -112,30 +132,74 @@ void TooLateOrTooSoonSimulation::setup(api::VariableWatchList properties)
     // If animations enabled, prepare view
     if (animate)
     {
-        // image = QImage(400, 400, QImage::Format_ARGB32_Premultiplied);
-        // image.fill(Qt::transparent);
+        animationConfiguration = AnimationConfiguration{};
+        image = QImage(animationConfiguration.width(),
+                       animationConfiguration.height(),
+                       QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
 
-        // // currentRow = 0;
+        QPainter p(&image);
+        p.setRenderHint(QPainter::Antialiasing, true);
+        p.setRenderHint(QPainter::TextAntialiasing, true);
+        p.setPen(Qt::white);
+        // draw XY coordinate system with labels
+        auto linesToDraw = QList{
+            QLine{animationConfiguration.axisYMaxPoint(), animationConfiguration.axisCenter()},
+            QLine{animationConfiguration.axisCenter(), animationConfiguration.axisXMaxPoint()}
+        };
+        linesToDraw.append(animationConfiguration.horizontalScales());
+        linesToDraw.append(animationConfiguration.verticalScales());
+        p.drawLines(std::move(linesToDraw));
+        // label the axes and scales
+        auto hStep = (boyArrivalTo - boyArrivalFrom) / animationConfiguration.horizontalScalesNumber();
+        for (int i = 0; const auto& hLabelPosition : animationConfiguration.horizontalScalesPositions())
+        {
+            auto time = convertToTime(boyArrivalFrom + (i++) * hStep);
+            p.drawText(hLabelPosition, time);
+        }
+        p.drawText(animationConfiguration.horizontalLabelPosition(), QStringLiteral("Czas przyjazdu chłopca"));
 
-        // QPainter p(&image);
-        // p.setRenderHint(QPainter::Antialiasing);
-        // p.setPen(Qt::white);
-        // p.drawLine(0, 200, 200, 200);
-        // p.drawLine(0, 0, 0, 200);
+        auto vStep = (busArrivalTo - busArrivalFrom) / animationConfiguration.verticalScalesNumber();
+        for (int i = 0; const auto& vLabelPosition : animationConfiguration.verticalScalesPositions())
+        {
+            auto time = convertToTime(busArrivalFrom + (i++) * vStep);
+            p.drawText(vLabelPosition, time);
+        }
+        p.save();
+        QPoint pos = animationConfiguration.verticalLabelPosition();
+        QTransform t;
+        t.translate(pos.x(), pos.y());
+        t.rotate(-90);
+        p.setWorldTransform(t, false);
+        p.drawText(QPoint(0, 0), QStringLiteral("Czas przyjazdu autobusu"));
+        p.restore();
+
+        // draw legend
+        const auto legendPosition = animationConfiguration.legendPosition();
+        const auto legendSize = animationConfiguration.legendSize();
+        const auto rows = 2;
+        const auto distanceBetweenRows = QPoint{0, legendSize.height() / (rows + 1)};
+        const auto textOffset = QPoint{10, 3};
+        auto rowPosition = QPoint{legendPosition.x() + legendSize.width() / 2, legendPosition.y() + distanceBetweenRows.y()};
+        const auto radius = 4;
+        // first row - green dot and a label
+        p.setPen(Qt::NoPen);
+        p.setBrush(Qt::darkGreen);
+        p.drawEllipse(rowPosition, radius, radius);
+        p.setPen(Qt::white);
+        p.drawText(rowPosition + textOffset, QStringLiteral("Na czas"));
+        // first row - red dot and a label
+        rowPosition += distanceBetweenRows;
+        p.setPen(Qt::NoPen);
+        p.setBrush(Qt::red);
+        p.drawEllipse(rowPosition, radius, radius);
+        p.setPen(Qt::white);
+        p.drawText(rowPosition + textOffset, QStringLiteral("Spóźniony"));
     }
 }
 
 void TooLateOrTooSoonSimulation::run(api::NumberGenerator& generator)
 {
-    static const auto convertToTime = [](const auto& value)
-    {
-        const auto seconds = value % 60;
-        const auto minutesOverall = (value - seconds) / 60;
-        const auto minutes = minutesOverall % 60;
-        const auto hours = minutesOverall / 60;
-        return QString::asprintf("%02d:%02d:%02d", hours, minutes, seconds);
-    };
-
     const auto busArrivalTime = generator(busArrivalFrom, busArrivalTo);
     const auto boyArrivalTime = generator(boyArrivalFrom, boyArrivalTo);
 
@@ -164,43 +228,19 @@ void TooLateOrTooSoonSimulation::run(api::NumberGenerator& generator)
 
     if (animate)
     {
-        // // Update image only if animation is enabled
-        // const int w = image.width();
-        // const int h = image.height();
-
-        // // prosty sposób: każda próba to jedna linia (od góry w dół)
-        // int y = currentRow;
-        // currentRow = (currentRow + 1) % h;  // jak dojedziemy do końca, zaczynamy od góry (lub możesz przestać rysować)
-
-        // // zakres czasów, który mapujemy na szerokość
-        // const int minTime = std::min(busArrivalFrom, boyArrivalFrom);
-        // const int maxTime = std::max(busArrivalTo,   boyArrivalTo);
-
-        // auto toX = [&](int t) -> int {
-        //     double norm = double(t - minTime) / double(maxTime - minTime);
-        //     int x = int(norm * (w - 1));
-        //     if (x < 0) x = 0;
-        //     if (x >= w) x = w - 1;
-        //     return x;
-        // };
-
-        // const int xBus = toX(busArrivalTime);
-        // const int xBoy = toX(boyArrivalTime);
-
-        // QPainter p(&image);
-        // p.setRenderHint(QPainter::Antialiasing, false);
-
-        // // autobus – np. niebieski
-        // p.setPen(Qt::blue);
-        // p.drawPoint(xBus, y);
-
-        // // chłopiec – zielony gdy na czas, czerwony gdy spóźniony
-        // if (boyArrivalTime <= busArrivalTime)
-        //     p.setPen(Qt::darkGreen);
-        // else
-        //     p.setPen(Qt::red);
-
-        // p.drawPoint(xBoy, y);
+        QPainter p(&image);
+        p.setRenderHint(QPainter::Antialiasing, false);
+        if (boyArrivalTime <= busArrivalTime)
+            p.setPen(Qt::darkGreen);
+        else
+            p.setPen(Qt::red);
+        const auto boyArrivalTimeOnAxisScale = map(boyArrivalTime, boyArrivalFrom, boyArrivalTo,
+                                                   animationConfiguration.axisCenter().x(),
+                                                   animationConfiguration.axisXMaxPoint().x());
+        const auto busArrivalTimeOnAxisScale = map(busArrivalTime, busArrivalFrom, busArrivalTo,
+                                                   animationConfiguration.axisCenter().y(),
+                                                   animationConfiguration.axisYMaxPoint().y());
+        p.drawPoint(boyArrivalTimeOnAxisScale, busArrivalTimeOnAxisScale);
     }
 }
 

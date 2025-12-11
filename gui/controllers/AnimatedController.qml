@@ -11,8 +11,8 @@ Item {
     Rectangle {
         id: imageFrame
         anchors.centerIn: parent
-        width: parent.width * 0.6
         height: parent.height * 0.6
+        width: height * 1.777 // 16:9 image scale
         color: "#202020"
         radius: 8
         border.color: "#404040"
