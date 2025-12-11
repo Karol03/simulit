@@ -17,12 +17,17 @@ int DetermineNumberGenerator::operator()()
 
 int DetermineNumberGenerator::operator()(int to)
 {
-    return std::uniform_int_distribution<int>(0, to)(m_gen);
+    return std::uniform_int_distribution(0, to)(m_gen);
 }
 
 int DetermineNumberGenerator::operator()(int from, int to)
 {
-    return std::uniform_int_distribution<int>(from, to)(m_gen);
+    return std::uniform_int_distribution(from, to)(m_gen);
+}
+
+double DetermineNumberGenerator::real(double from, double to)
+{
+    return std::uniform_real_distribution(from, to)(m_gen);
 }
 
 }  // namespace api

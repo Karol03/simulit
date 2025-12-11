@@ -31,6 +31,14 @@ public:
      * @return random integer in range <from, to>
      */
     virtual int operator()(int from, int to) = 0;
+
+    /**
+     * @brief operator ()
+     * @param from lower bound of random value
+     * @param to upper bound of random value
+     * @return random real number in range <from, to>
+     */
+    virtual double real(double from, double to) = 0;
 };
 
 }  // namespace api

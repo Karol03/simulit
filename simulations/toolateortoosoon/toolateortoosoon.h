@@ -6,6 +6,8 @@
 
 // --- Animation configuration ---
 // Handle variables useful for displaying animations
+namespace toolateortoosoon
+{
 struct AnimationConfiguration
 {
     AnimationConfiguration(double hMargins = 0.12L,
@@ -149,6 +151,7 @@ private:
     QList<QLine> m_calculatedHorizontalScales;
     QList<QLine> m_calculatedVerticalScales;
 };
+}  // namespace toolateortoosoon
 
 
 class TooLateOrTooSoonSimulation : public api::AnimatedSimulation
@@ -164,7 +167,7 @@ public:
     void teardown() override;
 
 private:
-    AnimationConfiguration animationConfiguration;
+    toolateortoosoon::AnimationConfiguration animationConfiguration;
 
     // --- Variables from properties ---
     int busArrivalFrom = 0;
@@ -183,7 +186,7 @@ private:
     int* longestLateSeries = nullptr;
     double* percentOfDelays = nullptr;
 
-    // --- Suuport variables for statistics ---
+    // --- Support variables for statistics ---
     // not present in UI but required to calculate others
     int64_t totalWaitingTimeInt = 0;
     int64_t totalDelayTimeInt = 0;

@@ -138,7 +138,7 @@ void TooLateOrTooSoonSimulation::setup(api::VariableWatchList properties)
     // If animations enabled, prepare view
     if (animate)
     {
-        animationConfiguration = AnimationConfiguration{};
+        animationConfiguration = toolateortoosoon::AnimationConfiguration{};
         image = QImage(animationConfiguration.width(),
                        animationConfiguration.height(),
                        QImage::Format_ARGB32_Premultiplied);

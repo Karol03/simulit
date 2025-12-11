@@ -13,12 +13,17 @@ int RandomNumberGenerator::operator()()
 
 int RandomNumberGenerator::operator()(int to)
 {
-    return std::uniform_int_distribution<int>(0, to)(m_rd);
+    return std::uniform_int_distribution(0, to)(m_rd);
 }
 
 int RandomNumberGenerator::operator()(int from, int to)
 {
-    return std::uniform_int_distribution<int>(from, to)(m_rd);
+    return std::uniform_int_distribution(from, to)(m_rd);
+}
+
+double RandomNumberGenerator::real(double from, double to)
+{
+    return std::uniform_real_distribution(from, to)(m_rd);
 }
 
 }  // namespace api

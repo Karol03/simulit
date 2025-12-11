@@ -17,6 +17,7 @@ public:
     int operator()() override;
     int operator()(int to) override;
     int operator()(int from, int to) override;
+    double real(double from, double to) override;
 
 private:
     std::mt19937 m_gen;
