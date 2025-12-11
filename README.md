@@ -1,7 +1,7 @@
 # Simulit
 
 A simple desktop application for running and testing simulations.
-Built with C++20, Qt 6.8 (QtQuick), targeting Windows 11 / MSVC 2022.
+Built with C++20, Qt 6.10.1 (QtQuick), targeting Windows 11 / MSVC 2022.
 
 The app automatically discovers simulation modules provided as DLL plugins.
 Just drop a DLL into the simulations/ folder next to the executable.
