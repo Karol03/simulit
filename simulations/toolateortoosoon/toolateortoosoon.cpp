@@ -114,10 +114,16 @@ void TooLateOrTooSoonSimulation::setup(api::VariableWatchList properties)
     // Check whether the time specified in the parameter 'to' follows the parameter 'from'
     // Report error if not
     if (busArrivalFrom > busArrivalTo)
+    {
         emit error(QString("Autobus wartość najwcześniej następuje po najpóźniej\n%1 > %2\nNieprawidłowa kolejność").arg(busArrivalFromStr, busArrivalToStr));
+        return;
+    }
 
     if (boyArrivalFrom > boyArrivalTo)
+    {
         emit error(QString("Autobus wartość najwcześniej następuje po najpóźniej\n%1 > %2\nNieprawidłowa kolejność").arg(boyArrivalFromStr, boyArrivalToStr));
+        return;
+    }
 
     // Get statistics pointers to update variables in run
     trials = &stats.ref<int>("Próby");

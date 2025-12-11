@@ -238,7 +238,7 @@ ApplicationWindow {
             radius: 8
             border.width: 1
             border.color: "#444348"
-            x: parent.width * 0.1
+            x: parent.width * 0.2
             y: simulationSelected ? parent.height - height - 12 : parent.height + 14
 
             property bool statisticsExpanded: true

@@ -120,11 +120,15 @@ void SimpleController::bindSignals(api::SimpleSimulation* simulation)
 
 void SimpleController::onSimulationUpdateProgress(const api::VariableMapSnapshot& update)
 {
+    if (!m_simulationThread)
+        return;
     m_statistics.updateWatched(update);
 }
 
 void SimpleController::onSimulationRunFinished(const api::VariableMapSnapshot& update)
 {
+    if (!m_simulationThread)
+        return;
     m_statistics.updateWatched(update);
     nextRun();
 }
@@ -155,6 +159,8 @@ void SimpleController::simulationStart()
 
 void SimpleController::onSimulationReadyToRun(const api::VariableMapSnapshot& update)
 {
+    if (!m_simulationThread)
+        return;
     m_statistics.updateWatched(update);
     transitionTo(ControllerState::Running);
     nextRun();

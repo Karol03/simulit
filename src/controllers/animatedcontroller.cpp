@@ -131,12 +131,16 @@ void AnimatedController::bindSignals(api::AnimatedSimulation* simulation)
 
 void AnimatedController::onSimulationUpdateProgress(const api::VariableMapSnapshot& update)
 {
+    if (!m_simulationThread)
+        return;
     m_statistics.updateWatched(update);
 }
 
 void AnimatedController::onSimulationRunFinished(const api::VariableMapSnapshot& update,
                                                  const QImage& image)
 {
+    if (!m_simulationThread)
+        return;
     m_statistics.updateWatched(update);
     redraw(image);
     nextRun();
@@ -169,6 +173,8 @@ void AnimatedController::simulationStart()
 void AnimatedController::onSimulationReadyToRun(const api::VariableMapSnapshot& update,
                                                 const QImage& image)
 {
+    if (!m_simulationThread)
+        return;
     m_statistics.updateWatched(update);
     redraw(image);
     transitionTo(ControllerState::Running);
